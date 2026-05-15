@@ -1176,7 +1176,7 @@
               return tags.map(t => `<div class="tag" style="background:var(--primary); color:white; padding:6px 16px; border-radius:20px; font-size:1rem; box-shadow: 0 4px 12px rgba(129, 178, 154, 0.3);">${t}</div>`).join('');
             };
 
-            const isErrorTag = (tags) => tags && tags.length === 1 && (tags[0] === '連線失敗' || tags[0] === '無法解析');
+            const isErrorTag = (tags) => tags && tags.length === 1 && (tags[0].includes('失敗') || tags[0].includes('無法解析') || tags[0].includes('model') || tags[0].includes('decommissioned'));
 
             const savedTagsQ1 = userProgressData['tags-want-q1'];
             const savedTagsQ2 = userProgressData['tags-want-q2'];
@@ -1271,7 +1271,7 @@
               return tags.map(t => `<div class="tag" style="background:var(--primary); color:white; padding:6px 16px; border-radius:20px; font-size:1rem; box-shadow: 0 4px 12px rgba(129, 178, 154, 0.3);">${t}</div>`).join('');
             };
 
-            const isErrorTag = (tags) => tags && tags.length === 1 && (tags[0] === '連線失敗' || tags[0] === '無法解析');
+            const isErrorTag = (tags) => tags && tags.length === 1 && (tags[0].includes('失敗') || tags[0].includes('無法解析') || tags[0].includes('model') || tags[0].includes('decommissioned'));
 
             const savedTagsQ1 = userProgressData['tags-able-q1'];
             const savedTagsQ2 = userProgressData['tags-able-q2'];
