@@ -974,15 +974,17 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: text })
         });
-        if (!response.ok) return ['連線失敗'];
+        
         const data = await response.json();
-        let rawResponse = data.trim();
-        rawResponse = rawResponse.replace(/^['"`]|['"`]$/g, '');
-        const parsed = JSON.parse(rawResponse);
-        return parsed.tags || [];
+
+        if (!response.ok) {
+          return [data.error || '連線失敗'];
+        }
+
+        return data.tags || [];
       } catch (e) {
         console.error("雲端分析失敗:", e);
-        return ['無法解析'];
+        return ['無法解析: ' + e.message];
       }
     }
 
