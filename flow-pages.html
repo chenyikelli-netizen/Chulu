@@ -327,27 +327,7 @@
       color: #81B29A;
     }
 
-    /* 測試用導覽列 (方便切換頁面) */
-    .debug-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      padding: 10px;
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      flex-wrap: wrap;
-      z-index: 999;
-    }
 
-    .debug-nav button {
-      padding: 5px 10px;
-      font-family: inherit;
-      font-size: 12px;
-      cursor: pointer;
-    }
 
     /* 1. 紙張紋理 - 提高透明度並增加混合模式 */
     .noise-overlay {
@@ -556,6 +536,158 @@
     .scale-range-overlay:active {
       cursor: grabbing;
     }
+
+    /* --- 🧭 快速導覽 (Quick Navigation) --- */
+    .quick-nav-container {
+      position: fixed;
+      top: 20px;
+      right: 40px;
+      z-index: 10000;
+      font-family: 'Iansui', 'Noto Serif TC', serif;
+    }
+
+    .quick-nav-toggle {
+      background: rgba(255, 255, 255, 0.55);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: 30px;
+      padding: 10px 22px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #3D405B;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.08);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .quick-nav-toggle:hover {
+      background: var(--primary);
+      color: white;
+      border-color: transparent;
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(129, 178, 154, 0.35);
+    }
+
+    .quick-nav-menu {
+      position: absolute;
+      top: 55px;
+      right: 0;
+      width: 320px;
+      max-height: 80vh;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(-10px) scale(0.95);
+      pointer-events: none;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .quick-nav-menu.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .quick-nav-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #3D405B;
+      font-size: 1.1rem;
+    }
+
+    .quick-nav-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: #E07A5F;
+      cursor: pointer;
+      line-height: 1;
+      transition: transform 0.2s;
+      padding: 0;
+    }
+
+    .quick-nav-close:hover {
+      transform: scale(1.2);
+    }
+
+    .quick-nav-sections {
+      padding: 16px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Custom Scrollbar for Quick Nav */
+    .quick-nav-sections::-webkit-scrollbar {
+      width: 6px;
+    }
+    .quick-nav-sections::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .quick-nav-sections::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+
+    .quick-nav-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .quick-nav-section-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      color: #8E92A7;
+      letter-spacing: 1.5px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      padding-left: 8px;
+    }
+
+    .quick-nav-item {
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      color: #3D405B;
+      display: flex;
+      align-items: center;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      border: 1px solid transparent;
+    }
+
+    .quick-nav-item:hover {
+      background: rgba(255, 255, 255, 0.85);
+      color: var(--primary);
+      padding-left: 18px;
+      border-color: rgba(129, 178, 154, 0.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    }
+
+    .quick-nav-item.active {
+      background: var(--primary);
+      color: white !important;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(129, 178, 154, 0.3);
+    }
   </style>
 </head>
 
@@ -569,6 +701,53 @@
   <!-- 左上角 Icon -->
   <img src="assets/icon.png" class="site-icon" alt="Career Match Icon" style="cursor: pointer;"
     onclick="window.location.href='index.html'">
+
+  <!-- 🧭 快速導覽 Panel -->
+  <div class="quick-nav-container">
+    <button class="quick-nav-toggle" id="quick-nav-toggle-btn" onclick="toggleQuickNav()">
+      <span>🧭</span> 快速導覽
+    </button>
+    <div class="quick-nav-menu" id="quick-nav-menu-panel">
+      <div class="quick-nav-header">
+        <span>🧭 快速導覽</span>
+        <button class="quick-nav-close" onclick="toggleQuickNav()">&times;</button>
+      </div>
+      <div class="quick-nav-sections">
+        <div class="quick-nav-section">
+          <div class="quick-nav-section-title">🧭 選單與回顧</div>
+          <div class="quick-nav-item" data-page="page-menu" onclick="jumpToPage('page-menu')">ABCD 選擇 (主選單)</div>
+          <div class="quick-nav-item" data-page="page-review-want" onclick="jumpToPage('page-review-want')">想不想 - 已知回顧</div>
+          <div class="quick-nav-item" data-page="page-review-able" onclick="jumpToPage('page-review-able')">能不能 - 已知回顧</div>
+        </div>
+        
+        <div class="quick-nav-section">
+          <div class="quick-nav-section-title">🔥 「想不想」探索流</div>
+          <div class="quick-nav-item" data-page="page-want-or-not" onclick="jumpToPage('page-want-or-not')">1. 想不想分流</div>
+          <div class="quick-nav-item" data-page="page-questions" onclick="jumpToPage('page-questions')">2. 自我探索問卷</div>
+          <div class="quick-nav-item" data-page="page-event-summary-want" onclick="jumpToPage('page-event-summary-want')">3. 事件簡述</div>
+          <div class="quick-nav-item" data-page="page-adjust-want" onclick="jumpToPage('page-adjust-want')">4. 調整向度</div>
+          <div class="quick-nav-item" data-page="page-event-summary-2-want" onclick="jumpToPage('page-event-summary-2-want')">5. 調整後簡述</div>
+          <div class="quick-nav-item" data-page="page-semantic-analysis-want" onclick="jumpToPage('page-semantic-analysis-want')">6. 語意分析結果</div>
+        </div>
+        
+        <div class="quick-nav-section">
+          <div class="quick-nav-section-title">⚡ 「能不能」探索流</div>
+          <div class="quick-nav-item" data-page="page-can-or-not" onclick="jumpToPage('page-can-or-not')">1. 能不能分流</div>
+          <div class="quick-nav-item" data-page="page-event-summary" onclick="jumpToPage('page-event-summary')">2. 事件簡述</div>
+          <div class="quick-nav-item" data-page="page-adjust" onclick="jumpToPage('page-adjust')">3. 調整向度</div>
+          <div class="quick-nav-item" data-page="page-event-summary-2" onclick="jumpToPage('page-event-summary-2')">4. 調整後簡述</div>
+          <div class="quick-nav-item" data-page="page-semantic-analysis-able" onclick="jumpToPage('page-semantic-analysis-able')">5. 語意分析結果</div>
+        </div>
+
+        <div class="quick-nav-section">
+          <div class="quick-nav-section-title">📊 綜合分析與結果</div>
+          <div class="quick-nav-item" data-page="page-reality-check" onclick="jumpToPage('page-reality-check')">1. 要不要刻度調整</div>
+          <div class="quick-nav-item" data-page="page-professions" onclick="jumpToPage('page-professions')">2. 適合職業與轉職雷達圖</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
   <!-- 想不想 回顧頁面 -->
   <div id="page-review-want" class="page-container"
@@ -968,18 +1147,7 @@
     </div>
   </div>
 
-  <!-- 開發測試用導覽列 -->
-  <div class="debug-nav">
-    <span style="color:white; line-height:26px; font-family:sans-serif; font-size:12px; margin-right:10px;">快速導覽:</span>
-    <button onclick="goTo('page-want-or-not')">想不想</button>
-    <button onclick="goTo('page-questions')">Q1-Q3問卷</button>
-    <button onclick="goTo('page-can-or-not')">能不能</button>
-    <button onclick="goTo('page-event-summary')">事件簡述1</button>
-    <button onclick="goTo('page-adjust')">調整向度</button>
-    <button onclick="goTo('page-event-summary-2')">事件簡述2</button>
-    <button onclick="goTo('page-professions')">職業結果</button>
-    <button onclick="goTo('page-menu')">ABCD選擇</button>
-  </div>
+
 
   <script>
     function selectScale(element, category, index) {
@@ -1538,6 +1706,9 @@ C01: 高度專業資訊轉譯, C02: 非結構化需求釐清, C03: 繁雜數據�
           }
 
           target.classList.add('active');
+          if (typeof updateQuickNavHighlight === 'function') {
+            updateQuickNavHighlight(pageId);
+          }
         }
       };
 
@@ -1550,6 +1721,36 @@ C01: 高度專業資訊轉譯, C02: 非結構化需求釐清, C03: 繁雜數據�
         doSwitch();
       }
     }
+
+    // 🧭 快速導覽輔助函數
+    function toggleQuickNav() {
+      const panel = document.getElementById('quick-nav-menu-panel');
+      if (panel) panel.classList.toggle('open');
+    }
+
+    function jumpToPage(pageId) {
+      goTo(pageId, true); // 使用立即跳轉模式
+      toggleQuickNav();   // 自動關閉選單
+    }
+
+    function updateQuickNavHighlight(pageId) {
+      document.querySelectorAll('.quick-nav-item').forEach(item => {
+        if (item.getAttribute('data-page') === pageId) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
+    }
+
+    // 點擊選單外部自動關閉
+    document.addEventListener('click', (e) => {
+      const container = document.querySelector('.quick-nav-container');
+      const panel = document.getElementById('quick-nav-menu-panel');
+      if (container && panel && panel.classList.contains('open') && !container.contains(e.target)) {
+        panel.classList.remove('open');
+      }
+    });
 
     // 當頁面載入時，檢查 URL 參數決定顯示哪一頁，並設定驗證與自動填入邏輯
     window.addEventListener('load', () => {
