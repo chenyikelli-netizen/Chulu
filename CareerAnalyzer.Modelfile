@@ -1,5 +1,5 @@
 # 基礎模型
-FROM llama3
+FROM qwen2.5
 
 # 設定模型的靈魂與規則
 SYSTEM """
