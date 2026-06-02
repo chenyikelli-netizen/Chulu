@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>初路 - 職涯探索之路</title>
+<link rel="icon" type="image/png" href="assets/favicon.png" />
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&display=swap');
 
@@ -1132,7 +1133,7 @@
       style="font-style: italic; max-width: 650px; line-height: 1.5; margin-bottom: 30px;"></div>
 
     <div class="action-buttons">
-      <button class="action-btn" onclick="goTo('page-semantic-analysis-want')">先試試看吧~</button>
+      <button class="action-btn" onclick="goTo('page-semantic-analysis-buffer-want')">先試試看吧~</button>
     </div>
   </div>
 
@@ -1287,7 +1288,7 @@
       style="font-style: italic; max-width: 650px; line-height: 1.5; margin-bottom: 30px;"></div>
 
     <div class="action-buttons">
-      <button class="action-btn" onclick="goTo('page-semantic-analysis-able')">先試試看吧~</button>
+      <button class="action-btn" onclick="goTo('page-semantic-analysis-buffer-able')">先試試看吧~</button>
     </div>
   </div>
 
@@ -1956,20 +1957,40 @@ A01: 專業內容的跨背景轉譯, A02: 模糊情境下的問題核心辨識, 
             }
           }
 
-          // Wants 語意分析二級緩衝過渡頁自動跳轉 (3秒)
+          // Wants 語意分析二級緩衝過渡頁自動跳轉 (等待分析 Promise 完成，或 8 秒超時安全網強行跳轉)
           if (pageId === 'page-semantic-analysis-buffer-want') {
             clearTransitionTimers();
-            transitionTimer = setTimeout(() => {
-              goTo('page-semantic-analysis-want');
-            }, 3000);
+            let hasRedirected = false;
+            const forceGo = () => {
+              if (!hasRedirected) {
+                hasRedirected = true;
+                goTo('page-semantic-analysis-want');
+              }
+            };
+            const timeoutTimer = setTimeout(forceGo, 8000);
+
+            runSemanticAnalysisAndCache('want', 3).then(() => {
+              clearTimeout(timeoutTimer);
+              forceGo();
+            });
           }
 
-          // Able 語意分析二級緩衝過渡頁自動跳轉 (3秒)
+          // Able 語意分析二級緩衝過渡頁自動跳轉 (等待分析 Promise 完成，或 8 秒超時安全網強行跳轉)
           if (pageId === 'page-semantic-analysis-buffer-able') {
             clearTransitionTimers();
-            transitionTimer = setTimeout(() => {
-              goTo('page-semantic-analysis-able');
-            }, 3000);
+            let hasRedirected = false;
+            const forceGo = () => {
+              if (!hasRedirected) {
+                hasRedirected = true;
+                goTo('page-semantic-analysis-able');
+              }
+            };
+            const timeoutTimer = setTimeout(forceGo, 8000);
+
+            runSemanticAnalysisAndCache('able', 2).then(() => {
+              clearTimeout(timeoutTimer);
+              forceGo();
+            });
           }
 
           // Bridge 橋樑頁面自動跳轉 (3秒)
@@ -2059,6 +2080,18 @@ A01: 專業內容的跨背景轉譯, A02: 模糊情境下的問題核心辨識, 
       element.innerHTML = html;
     }
 
+    // 檢查是否為錯誤標籤或舊版標籤快取（過期快取）
+    const isLegacyOrErrorTag = (tags) => {
+      if (!tags || tags.length === 0) return true;
+      if (tags.length === 1 && (tags[0].includes('失敗') || tags[0].includes('無法解析') || tags[0].includes('連線失敗'))) return true;
+      // 新版合法格式：A01-A15, B01-B16, C01-C16, D01-D13
+      const validTagPattern = /^[A-D](0[1-9]|1[0-6]):/;
+      for (const tag of tags) {
+        if (!validTagPattern.test(tag)) return true;
+      }
+      return false;
+    };
+
     // 輔助函數：觸發並渲染語意分析
     function triggerSemanticAnalysis(type, count) {
       const container = document.getElementById(`semantic-content-${type}`);
@@ -2074,27 +2107,43 @@ A01: 專業內容的跨背景轉譯, A02: 模糊情境下的問題核心辨識, 
         return tags.map(t => `<div class="tag">${t}</div>`).join('');
       };
 
-      // 檢查是否為錯誤標籤或舊版標籤快取（過期快取）
-      const isLegacyOrErrorTag = (tags) => {
-        if (!tags || tags.length === 0) return true;
-        if (tags.length === 1 && (tags[0].includes('失敗') || tags[0].includes('無法解析') || tags[0].includes('連線失敗'))) return true;
-        // 新版合法格式：A01-A15, B01-B16, C01-C16, D01-D13
-        const validTagPattern = /^[A-D](0[1-9]|1[0-6]):/;
-        for (const tag of tags) {
-          if (!validTagPattern.test(tag)) return true;
-        }
-        return false;
+      // 找到該頁面的所有 action-btn（透過 container 往上找到 page-container）
+      const pageEl = container.closest('.page-container');
+      const actionBtns = pageEl ? pageEl.querySelectorAll('.action-btn') : [];
+
+      // 鎖住按鈕的輔助函數
+      const lockBtns = () => {
+        actionBtns.forEach(btn => {
+          btn.disabled = true;
+          btn.title = '請稍候，標籤分析中...';
+        });
+      };
+
+      // 解鎖按鈕的輔助函數
+      const unlockBtns = () => {
+        actionBtns.forEach(btn => {
+          btn.disabled = false;
+          btn.title = '';
+        });
       };
 
       let html = '';
+      let pendingCount = 0; // 需要發 API 的題目數量
+
       for (let i = 1; i <= count; i++) {
         const qKey = i === 1 ? 'q1' : (i === 2 ? 'q2' : 'q3');
         const storageTextKey = type === 'want' ? `input-adjust-${qKey}` : `input-adjust-can-${qKey}`;
         const fallbackTextKey = type === 'want' ? `input-${qKey}` : `input-can-${qKey}`;
         const text = userProgressData[storageTextKey] || userProgressData[fallbackTextKey] || '無輸入內容';
 
+        const lastTextKey = `last-text-${type}-${qKey}`;
         const savedTagsKey = `tags-${type}-${qKey}`;
         const savedTags = userProgressData[savedTagsKey];
+        const changed = text.trim() !== (userProgressData[lastTextKey] || '').trim();
+
+        // 判斷此題是否需要發 API
+        const needsAnalysis = (changed || !savedTags || isLegacyOrErrorTag(savedTags)) && text !== '無輸入內容';
+        if (needsAnalysis) pendingCount++;
 
         html += `
           <div class="semantic-anim-item">
@@ -2103,12 +2152,17 @@ A01: 專業內容的跨背景轉譯, A02: 模糊情境下的問題核心辨識, 
               <div style="${textStyle}">${text}</div>
             </div>
             <div id="tags-${type}-${qKey}" style="${tagsStyle}">
-              ${(savedTags && !isLegacyOrErrorTag(savedTags)) ? renderTags(savedTags) : '<div class="tag" style="color:var(--secondary); border: 1px solid var(--secondary); background: transparent;">⏳ 分析中...</div>'}
+              ${(savedTags && !isLegacyOrErrorTag(savedTags) && !changed) ? renderTags(savedTags) : '<div class="tag" style="color:var(--secondary); border: 1px solid var(--secondary); background: transparent;">⏳ 分析中...</div>'}
             </div>
           </div>
         `;
       }
       container.innerHTML = html;
+
+      // 若有任何一題需要等待分析，立即鎖住按鈕
+      if (pendingCount > 0) {
+        lockBtns();
+      }
 
       // 背景發送 API
       for (let i = 1; i <= count; i++) {
@@ -2122,18 +2176,68 @@ A01: 專業內容的跨背景轉譯, A02: 模糊情境下的問題核心辨識, 
         const savedTags = userProgressData[savedTagsKey];
         const changed = text.trim() !== (userProgressData[lastTextKey] || '').trim();
 
+        if ((changed || !savedTags || isLegacyOrErrorTag(savedTags)) && text !== '無輸入內容') {
+          analyzeByCloud(text).then(tags => {
+            userProgressData[savedTagsKey] = tags;
+            userProgressData[lastTextKey] = text.trim();
+            localStorage.setItem('careerRPG_data', JSON.stringify(userProgressData));
+            const el = document.getElementById(`tags-${type}-${qKey}`);
+            if (el) el.innerHTML = renderTags(tags);
+
+            // 每完成一題就遞減，全部完成後解鎖按鈕
+            pendingCount--;
+            if (pendingCount <= 0) {
+              unlockBtns();
+            }
+          }).catch(err => {
+            // 即便出錯也要解鎖，避免使用者卡住
+            pendingCount--;
+            if (pendingCount <= 0) {
+              unlockBtns();
+            }
+          });
+        }
+      }
+    }
+
+    // 輔助函數：背景發送 API 進行分析並寫入快取，回傳 Promise
+    function runSemanticAnalysisAndCache(type, count) {
+      const promises = [];
+
+      for (let i = 1; i <= count; i++) {
+        const qKey = i === 1 ? 'q1' : (i === 2 ? 'q2' : 'q3');
+        const storageTextKey = type === 'want' ? `input-adjust-${qKey}` : `input-adjust-can-${qKey}`;
+        const fallbackTextKey = type === 'want' ? `input-${qKey}` : `input-can-${qKey}`;
+        const text = userProgressData[storageTextKey] || userProgressData[fallbackTextKey] || '無輸入內容';
+
+        const lastTextKey = `last-text-${type}-${qKey}`;
+        const savedTagsKey = `tags-${type}-${qKey}`;
+        const savedTags = userProgressData[savedTagsKey];
+        const changed = text.trim() !== (userProgressData[lastTextKey] || '').trim();
+
         if (changed || !savedTags || isLegacyOrErrorTag(savedTags)) {
           if (text !== '無輸入內容') {
-            analyzeByCloud(text).then(tags => {
-              userProgressData[savedTagsKey] = tags;
-              userProgressData[lastTextKey] = text.trim();
-              localStorage.setItem('careerRPG_data', JSON.stringify(userProgressData));
-              const el = document.getElementById(`tags-${type}-${qKey}`);
-              if (el) el.innerHTML = renderTags(tags);
-            });
+            const p = analyzeByCloud(text)
+              .then(tags => {
+                userProgressData[savedTagsKey] = tags;
+                userProgressData[lastTextKey] = text.trim();
+                localStorage.setItem('careerRPG_data', JSON.stringify(userProgressData));
+              })
+              .catch(err => {
+                console.error("分析失敗:", err);
+                userProgressData[savedTagsKey] = [`無法解析: ${err.message}`];
+                userProgressData[lastTextKey] = text.trim();
+                localStorage.setItem('careerRPG_data', JSON.stringify(userProgressData));
+              });
+            promises.push(p);
           }
         }
       }
+
+      if (promises.length === 0) {
+        return Promise.resolve();
+      }
+      return Promise.all(promises);
     }
 
     // 輔助函數：渲染歷史檢視頁 (參考 flow-pages.html 的同頁面設計)
@@ -2240,12 +2344,7 @@ A01: 專業內容的跨背景轉譯, A02: 模糊情境下的問題核心辨識, 
       } else if (step === 'page-menu') {
         goTo('page-menu', true);
       } else if (step === 'page-dreams-intro') {
-        const hasWantHistory = localStorage.getItem('careerRPG_hasWantHistory') === 'true';
-        if (hasWantHistory) {
-          goTo('page-known-want', true);
-        } else {
-          goTo('page-dreams-intro', true);
-        }
+        goTo('page-dreams-intro', true);
       } else if (step) {
         goTo(step, true);
       } else if (savedPage) {
