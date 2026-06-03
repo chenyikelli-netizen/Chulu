@@ -87,7 +87,8 @@
       opacity: 1;
       visibility: visible;
       pointer-events: auto;
-      animation: gentleFadeIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+      animation: gentleFadeIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+      animation-delay: 0.4s;
     }
 
     .final-content h2 {
@@ -133,8 +134,8 @@
       opacity: 1;
       visibility: visible;
       pointer-events: auto;
-      animation: gentleFadeIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
-      animation-delay: 0.15s;
+      animation: gentleFadeIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+      animation-delay: 0.55s;
     }
 
     .action-buttons {
@@ -146,13 +147,11 @@
     @keyframes gentleFadeIn {
       from {
         opacity: 0;
-        filter: blur(10px);
-        transform: translateY(20px);
+        transform: translateY(5px);
       }
 
       to {
         opacity: 1;
-        filter: blur(0);
         transform: translateY(0);
       }
     }
@@ -201,11 +200,11 @@
     }
 
     body.show-final-text .action-btn:nth-child(1) {
-      animation-delay: 0.3s;
+      animation-delay: 0.7s;
     }
 
     body.show-final-text .action-btn:nth-child(2) {
-      animation-delay: 0.45s;
+      animation-delay: 0.85s;
     }
 
     /* 左上角 Icon 樣式 */
@@ -282,10 +281,43 @@
         opacity: 0;
       }
     }
+
+    /* ===== 開場動畫 Overlay ===== */
+    #intro-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: #E8E2DB; /* 與影片背景色接近，避免閃白 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.6s ease-in-out;
+    }
+
+    #intro-overlay.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #intro-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+
   </style>
 </head>
 
 <body>
+
+  <!-- 開場動畫 Overlay -->
+  <div id="intro-overlay">
+    <video id="intro-video" autoplay muted playsinline preload="auto">
+      <source src="assets/開場.mp4" type="video/mp4">
+    </video>
+  </div>
 
   <!-- 環境裝飾元素 -->
   <div class="noise-overlay"></div>
@@ -335,16 +367,38 @@
       }
     }
 
-    window.addEventListener('load', () => {
-      createDustMotes();
+    // 影片結束後觸發主頁面淡入
+    function enterMainContent() {
+      const overlay = document.getElementById('intro-overlay');
+      overlay.classList.add('fade-out');
 
-      // 載入網頁後立即播放淡入動畫
+      // overlay 淡出完成（0.6s）後移除
+      setTimeout(() => {
+        overlay.remove();
+      }, 600);
+
+      // 同步觸發主頁面（內容動畫 delay 0.4s，與 overlay 末段重疊）
       document.body.classList.add('show-final-text');
-      
-      // 動態按鈕動畫完全結束後（約 1.3 秒）開放點擊
+
+      // btns-ready：0.85s delay + 0.4s 動畫 ≈ 1.3s
       setTimeout(() => {
         document.body.classList.add('btns-ready');
       }, 1300);
+    }
+
+    window.addEventListener('load', () => {
+      createDustMotes();
+
+      const video = document.getElementById('intro-video');
+
+      // 影片播畢 → 進入主畫面
+      video.addEventListener('ended', enterMainContent);
+
+      // 若影片無法播放（格式不支援或載入失敗），直接進入主畫面
+      video.addEventListener('error', () => {
+        console.warn('開場影片載入失敗，直接進入主畫面。');
+        enterMainContent();
+      });
     });
   </script>
 </body>
