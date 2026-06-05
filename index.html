@@ -306,18 +306,178 @@
       display: block;
     }
 
+    /* ===== 手機開場動畫 Overlay（純 CSS/JS 漣漪動畫）===== */
+    #mobile-intro {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: var(--s10);
+      display: none; /* 由 JS 依裝置分流顯示 */
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transition: opacity 0.7s ease-in-out;
+    }
 
+    #mobile-intro.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Canvas 漣漪層 */
+    #ripple-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    /* 水滴本體：透明水質感 */
+    #mi-drop {
+      position: absolute;
+      width: 9px;
+      height: 13px;
+      /* 雙層漸層：白色高光點 + 極淡珊瑚主體 */
+      background:
+        radial-gradient(ellipse 30% 35% at 38% 26%,
+          rgba(255,255,255,0.60) 0%,
+          rgba(255,255,255,0.00) 65%),
+        radial-gradient(ellipse 75% 88% at 50% 58%,
+          rgba(212,168,152,0.22) 0%,
+          rgba(200,155,135,0.06) 100%);
+      border-radius: 50% 50% 55% 55% / 44% 44% 66% 66%;
+      left: 50%;
+      top: -24px;
+      transform: translateX(-50%) scale(1);
+      transform-origin: center center;
+      z-index: 30;
+      opacity: 0;
+      filter: blur(1.2px);
+      will-change: transform, opacity;
+    }
+
+    /* LOGO 組合容器 */
+    #mi-logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -52%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 20;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #mi-logo-icon {
+      width: 108px;
+      height: 108px;
+      margin-bottom: 22px;
+      filter: drop-shadow(0 0 18px rgba(250,246,243,0.85));
+    }
+
+    #mi-logo-title {
+      font-family: 'Iansui', 'Noto Serif TC', serif;
+      font-size: 3rem;
+      font-weight: 600;
+      letter-spacing: 18px;
+      margin-right: -18px;
+      color: var(--n50);
+      line-height: 1;
+      margin-bottom: 14px;
+      text-shadow:
+        0 0 20px rgba(250,246,243,0.95),
+        0 2px 8px rgba(250,246,243,0.7);
+    }
+
+    #mi-logo-sub {
+      font-family: 'Iansui', 'Noto Serif TC', serif;
+      font-size: 0.72rem;
+      font-weight: 400;
+      letter-spacing: 4px;
+      margin-right: -4px;
+      color: var(--n40);
+      text-shadow: 0 1px 6px rgba(250,246,243,0.9);
+    }
+
+    /* 中心光暈 */
+    #mi-halo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -52%);
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle,
+        rgba(242,223,211,0.55) 0%, transparent 70%);
+      z-index: 15;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* 消散遮罩（讓 LOGO 從白霧中浮現）*/
+    #mi-reveal {
+      position: absolute;
+      inset: 0;
+      background: var(--s10);
+      z-index: 25;
+      opacity: 1;
+      pointer-events: none;
+    }
+
+    /* 手機版塵埃粒子 */
+    #mi-motes .mi-mote {
+      position: absolute;
+      background: rgba(212,168,152,0.55);
+      border-radius: 50%;
+      filter: blur(1px);
+      animation: miFloat linear infinite;
+      pointer-events: none;
+      z-index: 6;
+    }
+
+    @keyframes miFloat {
+      0%   { transform: translateY(100vh) scale(0.5); opacity: 0; }
+      15%  { opacity: 0.65; }
+      85%  { opacity: 0.35; }
+      100% { transform: translateY(-20px) scale(1.1); opacity: 0; }
+    }
+
+    /* ===== 行動端響應式調整 ===== */
+    @media (max-width: 768px) {
+      .final-content h2 {
+        font-size: 3.5rem; /* 縮小標題字型，防止在手機上折行 */
+        letter-spacing: 15px; /* 縮小字距 */
+        margin-right: -15px;
+      }
+      .final-subtitle {
+        font-size: 1.1rem;
+        letter-spacing: 4px;
+        margin-right: -4px;
+        margin-bottom: 32px;
+      }
+      .action-buttons {
+        flex-direction: row; /* 確保按鈕維持水平排列 */
+        gap: 16px;
+      }
+      .action-btn {
+        padding: 12px 24px; /* 減少內邊距以適應手機寬度 */
+        font-size: 0.95rem;
+        white-space: nowrap; /* 強制按鈕文字不折行 */
+      }
+    }
   </style>
 </head>
 
 <body>
 
-  <!-- 開場動畫 Overlay -->
-  <div id="intro-overlay">
-    <video id="intro-video" autoplay muted playsinline preload="auto">
-      <source src="assets/開場.mp4" type="video/mp4">
-    </video>
-  </div>
+  <!-- 開場動畫 Overlay (預設隱藏，由 JS 針對電腦版動態載入影片，防止手機版殘影與流量消耗) -->
+  <div id="intro-overlay" style="display: none;"></div>
 
   <!-- 環境裝飾元素 -->
   <div class="noise-overlay"></div>
@@ -329,6 +489,38 @@
 
   <!-- 初始首頁背景 (清晰背景) -->
   <div class="homepage-mock"></div>
+
+  <!-- 手機開場動畫 Overlay（純 CSS/JS 動畫）-->
+  <div id="mobile-intro">
+    <canvas id="ripple-canvas"></canvas>
+    <div id="mi-halo"></div>
+    <div id="mi-reveal"></div>
+    <div id="mi-drop"></div>
+    <div id="mi-logo">
+      <!-- SVG 忠實複刻 icon.png 的雙層拱門 -->
+      <svg id="mi-logo-icon" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="mi-paper" x="-5%" y="-5%" width="110%" height="110%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.88" numOctaves="4" result="noise" seed="3"/>
+            <feColorMatrix type="saturate" values="0" in="noise" result="grayNoise"/>
+            <feBlend in="SourceGraphic" in2="grayNoise" mode="multiply" result="blended"/>
+            <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+          </filter>
+        </defs>
+        <!-- 外層大拱門 -->
+        <path d="M 28,175 L 28,102 Q 28,30 100,30 Q 172,30 172,102 L 172,175"
+              fill="none" stroke="#3D3530" stroke-width="26" stroke-linecap="round"
+              filter="url(#mi-paper)"/>
+        <!-- 內層小拱門 -->
+        <path d="M 68,175 L 68,114 Q 68,74 100,74 Q 132,74 132,114 L 132,175"
+              fill="none" stroke="#3D3530" stroke-width="22" stroke-linecap="round"
+              filter="url(#mi-paper)"/>
+      </svg>
+      <div id="mi-logo-title">初路</div>
+      <div id="mi-logo-sub">初級大人的探索之路</div>
+    </div>
+    <div id="mi-motes"></div>
+  </div>
 
   <!-- 最終顯示內容 (主標題與副標題，一進來便自動淡入) -->
   <div class="final-content">
@@ -343,7 +535,7 @@
   </div>
 
   <script>
-    // 建立塵埃粒子
+    // 建立環境塵埃粒子
     function createDustMotes() {
       const container = document.getElementById('dust-motes');
       if (!container) return;
@@ -351,54 +543,226 @@
       for (let i = 0; i < moteCount; i++) {
         const mote = document.createElement('div');
         mote.classList.add('mote');
-
         const size = Math.random() * 4 + 2;
-        const left = Math.random() * 100;
-        const duration = Math.random() * 15 + 10;
-        const delay = Math.random() * -20;
-
         mote.style.width = `${size}px`;
         mote.style.height = `${size}px`;
-        mote.style.left = `${left}vw`;
-        mote.style.animationDuration = `${duration}s`;
-        mote.style.animationDelay = `${delay}s`;
-
+        mote.style.left = `${Math.random() * 100}vw`;
+        mote.style.animationDuration = `${Math.random() * 15 + 10}s`;
+        mote.style.animationDelay = `${Math.random() * -20}s`;
         container.appendChild(mote);
       }
     }
 
-    // 影片結束後觸發主頁面淡入
-    function enterMainContent() {
-      const overlay = document.getElementById('intro-overlay');
+    // 影片與動畫結束後共同調用：進入主畫面
+    function enterMainContent(overlayId) {
+      const overlay = document.getElementById(overlayId || 'intro-overlay');
+      if (!overlay) return;
       overlay.classList.add('fade-out');
-
-      // overlay 淡出完成（0.6s）後移除
-      setTimeout(() => {
-        overlay.remove();
-      }, 600);
-
-      // 同步觸發主頁面（內容動畫 delay 0.4s，與 overlay 末段重疊）
+      setTimeout(() => overlay.remove(), 700);
       document.body.classList.add('show-final-text');
-
-      // btns-ready：0.85s delay + 0.4s 動畫 ≈ 1.3s
-      setTimeout(() => {
-        document.body.classList.add('btns-ready');
-      }, 1300);
+      setTimeout(() => document.body.classList.add('btns-ready'), 1300);
     }
 
+    /* ======================================================
+       手機版專屬：Canvas 漣漪動畫與流程控制 (精準對齊 4 秒)
+     ====================================================== */
+    function isMobile() {
+      return window.matchMedia('(max-width: 768px)').matches ||
+             ('ontouchstart' in window && window.innerWidth <= 900);
+    }
+
+    // -- 手機版塵埃粒子 --
+    function spawnMiMotes() {
+      const c = document.getElementById('mi-motes');
+      if (!c) return;
+      for (let i = 0; i < 14; i++) {
+        const m = document.createElement('div');
+        m.classList.add('mi-mote');
+        const sz = Math.random() * 3 + 1.5;
+        m.style.cssText = [
+          'width:' + sz + 'px',
+          'height:' + sz + 'px',
+          'left:' + (Math.random()*100) + '%',
+          'animation-duration:' + (Math.random()*12+8) + 's',
+          'animation-delay:' + (Math.random()*-15) + 's'
+        ].join(';');
+        c.appendChild(m);
+      }
+    }
+
+    // -- Canvas 漣漪核心 --
+    function initRippleCanvas() {
+      const canvas = document.getElementById('ripple-canvas');
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const ctx = canvas.getContext('2d');
+      const ripples = [];
+
+      function addRipple(x, y, maxR, speed, alpha) {
+        ripples.push({ x, y, r: 24, maxR, speed, alpha, done: false });
+      }
+
+      function drawRipples() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let active = false;
+        ripples.forEach(rp => {
+          if (rp.done) return;
+          active = true;
+          const progress = Math.min(1.2, rp.r / rp.maxR);
+          const opacity  = rp.alpha * Math.pow(Math.max(0, 1 - progress), 1.5);
+          if (opacity > 0.002) {
+            ctx.beginPath();
+            ctx.ellipse(rp.x, rp.y, rp.r * 1.20, rp.r * 0.65, 0, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(180,130,110,' + opacity.toFixed(3) + ')';
+            ctx.lineWidth   = Math.max(0.2, 1.5 * Math.max(0, 1 - progress));
+            ctx.stroke();
+          }
+          rp.r += rp.speed;
+          if (opacity <= 0.002 || rp.r >= rp.maxR * 1.25) {
+            rp.done = true;
+          }
+        });
+        if (active) requestAnimationFrame(drawRipples);
+      }
+
+      const W  = canvas.width;
+      const H  = canvas.height;
+      const CX = W / 2;
+
+      async function playMobileIntro() {
+        spawnMiMotes();
+        requestAnimationFrame(drawRipples);
+
+        const drop   = document.getElementById('mi-drop');
+        const logo   = document.getElementById('mi-logo');
+        const halo   = document.getElementById('mi-halo');
+        const reveal = document.getElementById('mi-reveal');
+
+        const wait    = ms => new Promise(r => setTimeout(r, ms));
+        const easeOut = t => 1 - Math.pow(1 - t, 3);
+
+        // 1. 靜止蓄力 (調整至 100ms，縮短等待以提升即時感)
+        await wait(100);
+
+        // 2. 水滴落下 (重力加速度設定為 0.88，下墜約耗時 250ms (0.25秒)，前兩階段總共約 0.35s)
+        const DROP_END = H * 0.46;
+        const DROP_PCT = ((DROP_END / H) * 100).toFixed(2) + '%';
+
+        await new Promise(resolve => {
+          let y = -24, vy = 0;
+          drop.style.opacity = '1';
+          function fall() {
+            vy += 0.88;
+            y  += vy;
+            drop.style.top = y + 'px';
+            if (y >= DROP_END) {
+              resolve(); // 撞擊瞬間：立刻回傳啟動漣漪與遮罩，消除空白
+
+              // 異步執行水滴飛濺消失
+              const SPLASH_DUR = 220;
+              const splashStart = performance.now();
+              function splash(now) {
+                const st = Math.min((now - splashStart) / SPLASH_DUR, 1);
+                const sc = 1 + st * 1.8;
+                const op = (1 - st).toFixed(3);
+                drop.style.transform = 'translateX(-50%) scale(' + sc + ')';
+                drop.style.opacity   = op;
+                if (st < 1) requestAnimationFrame(splash);
+              }
+              requestAnimationFrame(splash);
+            } else {
+              requestAnimationFrame(fall);
+            }
+          }
+          fall();
+        });
+
+        // 3. IMPACT：3 波漣漪無延遲同步啟動，高擴散速度
+        const waves = [
+          { delay: 0, maxR: 140, speed: 0.65, alpha: 0.30 }, // 第一波：快速散開
+          { delay: 0, maxR: 260, speed: 0.68, alpha: 0.18 }, // 第二波
+          { delay: 0, maxR: Math.max(W, H) * 0.78, speed: 0.70, alpha: 0.08 }, // 第三波
+        ];
+        waves.forEach(w => setTimeout(() =>
+          addRipple(CX, DROP_END, w.maxR, w.speed, w.alpha), w.delay));
+
+        // 4. 遮罩消散
+        const REVEAL_DUR  = 1800;  
+        const revealStart = performance.now();
+        const easeInOut   = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t; 
+
+        function animateReveal(now) {
+          const t = Math.min((now - revealStart) / REVEAL_DUR, 1);
+          const e = easeInOut(t);              
+          const r    = (e * 158).toFixed(2);  
+          const edge = (e * 158 + 4).toFixed(2);
+          const m = 'radial-gradient(circle at 50% ' + DROP_PCT +
+                    ', transparent ' + r + '%, #FAF6F3 ' + edge + '%)';
+          reveal.style.webkitMaskImage = m;
+          reveal.style.maskImage       = m;
+          if (t < 1) requestAnimationFrame(animateReveal);
+          else reveal.style.display = 'none';
+        }
+        requestAnimationFrame(animateReveal);
+
+        // 5. LOGO 淡入 (150ms 延遲開始，800ms 淡入)
+        await wait(150);
+        const LOGO_DUR  = 800;
+        const logoStart = performance.now();
+        function animateLogo(now) {
+          const t = Math.min((now - logoStart) / LOGO_DUR, 1);
+          const e = easeOut(t);
+          logo.style.opacity = e.toFixed(4);
+          halo.style.opacity = (e * 0.70).toFixed(4);
+          if (t < 1) requestAnimationFrame(animateLogo);
+        }
+        requestAnimationFrame(animateLogo);
+
+        // 6. 固定對齊：前半段（0.35s = 0.1s 蓄力 + 0.25s 下墜）已完成，此處固定等待 3650ms，使總時長完美固定為 4.0 秒
+        await wait(3650);
+        enterMainContent('mobile-intro');
+      }
+
+      playMobileIntro();
+    }
+
+    // -- 載入分流與初始化 --
     window.addEventListener('load', () => {
       createDustMotes();
 
-      const video = document.getElementById('intro-video');
-
-      // 影片播畢 → 進入主畫面
-      video.addEventListener('ended', enterMainContent);
-
-      // 若影片無法播放（格式不支援或載入失敗），直接進入主畫面
-      video.addEventListener('error', () => {
-        console.warn('開場影片載入失敗，直接進入主畫面。');
-        enterMainContent();
-      });
+      if (isMobile()) {
+        // --- 行動端：直接移除（remove）桌機影片 Overlay，防止底圖殘影干擾 ---
+        const videoOverlay = document.getElementById('intro-overlay');
+        if (videoOverlay) videoOverlay.remove();
+        
+        const mobileOverlay = document.getElementById('mobile-intro');
+        if (mobileOverlay) mobileOverlay.style.display = 'flex';
+        
+        playMobileIntro();
+      } else {
+        // --- 桌面端：顯示 overlay，並動態插入影片播放 ---
+        const mobileOverlay = document.getElementById('mobile-intro');
+        if (mobileOverlay) mobileOverlay.remove();
+        
+        const videoOverlay = document.getElementById('intro-overlay');
+        if (videoOverlay) {
+          videoOverlay.style.display = 'flex';
+          videoOverlay.innerHTML = `
+            <video id="intro-video" autoplay muted playsinline preload="auto">
+              <source src="assets/開場.mp4" type="video/mp4">
+            </video>
+          `;
+          
+          const video = document.getElementById('intro-video');
+          if (video) {
+            video.addEventListener('ended', () => enterMainContent('intro-overlay'));
+            video.addEventListener('error', () => {
+              console.warn('開場影片載入失敗，直接進入主畫面。');
+              enterMainContent('intro-overlay');
+            });
+          }
+        }
+      }
     });
   </script>
 </body>
