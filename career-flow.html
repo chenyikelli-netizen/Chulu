@@ -7,18 +7,26 @@
   <title>初路 - 職涯探索之路</title>
   <link rel="icon" type="image/png" href="assets/favicon.png" />
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@600;900&display=swap');
 
     :root {
       /* ===== 品牌色票 ===== */
-      --s10: #FAF6F3;   /* 靜白・背景主色 */
-      --s30: #F2DFD3;   /* 奶霧粉・品牌主色 */
-      --s40: #E8D5C7;   /* 淡燕麥・邊框 */
-      --s50: #D4A898;   /* 舊珊瑚・強調色 */
-      --n50: #2C2A26;   /* 碳墨・主文字 */
-      --n40: #4A3E38;   /* 深土・副標題 */
-      --n30: #8C7B72;   /* 木煙・輔助文字 */
-      --a20: #A8B498;   /* 霧綠・確認狀態 */
+      --s10: #FAF6F3;
+      /* 靜白・背景主色 */
+      --s30: #F2DFD3;
+      /* 奶霧粉・品牌主色 */
+      --s40: #E8D5C7;
+      /* 淡燕麥・邊框 */
+      --s50: #D4A898;
+      /* 舊珊瑚・強調色 */
+      --n50: #2C2A26;
+      /* 碳墨・主文字 */
+      --n40: #4A3E38;
+      /* 深土・副標題 */
+      --n30: #8C7B72;
+      /* 木煙・輔助文字 */
+      --a20: #A8B498;
+      /* 霧綠・確認狀態 */
       /* 相容舊變數名稱 */
       --primary: #A8B498;
       --secondary: #D4A898;
@@ -44,7 +52,8 @@
       background:
         linear-gradient(rgba(250, 246, 243, 0.40), rgba(250, 246, 243, 0.40)),
         url('assets/abanner.png') center/cover no-repeat fixed;
-      font-family: 'Iansui', 'Noto Serif TC', serif;
+      font-family: 'Noto Sans TC', sans-serif;
+      line-height: 1.8;
       color: var(--n50);
       overflow-x: hidden;
     }
@@ -56,12 +65,15 @@
       left: 0;
       width: 100%;
       height: 56px;
-      background: rgba(250, 246, 243, 0.75); /* 使用品牌 s10 靜白，帶 75% 透明 */
+      background: rgba(250, 246, 243, 0.75);
+      /* 使用品牌 s10 靜白，帶 75% 透明 */
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(232, 213, 199, 0.4); /* s40 淡燕麥邊框 */
+      border-bottom: 1px solid rgba(232, 213, 199, 0.4);
+      /* s40 淡燕麥邊框 */
       z-index: 999;
-      display: none; /* 桌面端預設隱藏 */
+      display: none;
+      /* 桌面端預設隱藏 */
     }
 
     /* 左上角 Icon */
@@ -205,8 +217,9 @@
 
     /* 樣式規格 */
     h2.page-title {
-      font-size: 3.2rem;
-      font-weight: 600;
+      font-family: 'Noto Serif TC', serif;
+      font-weight: 700;
+      font-size: 2.5rem;
       margin-bottom: 25px;
       letter-spacing: 12px;
       margin-right: -12px;
@@ -217,16 +230,17 @@
     }
 
     .sub-title {
-      font-size: 1.3rem;
+      font-family: 'Noto Serif TC', serif;
+      font-weight: 700;
+      font-size: 1.25rem;
       margin-bottom: 25px;
-      /* S50 舊珊瑚 為副標題色 */
-      color: var(--s50);
-      font-weight: 600;
+      /* N40 深土 為副標題色 */
+      color: var(--n40);
       text-align: center;
       /* S10 靜白柔光 */
       text-shadow: 0 1px 4px rgba(250, 246, 243, 0.9);
       max-width: 700px;
-      line-height: 1.6;
+      line-height: 1.5;
     }
 
     /* 8個空格網格佈局 */
@@ -261,9 +275,9 @@
     }
 
     .about-header-title {
-      font-size: 2.8rem;
+      font-size: 2.5rem;
       font-family: 'Noto Serif TC', serif;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--n50);
       letter-spacing: 2px;
       margin: 0;
@@ -274,9 +288,12 @@
     }
 
     .about-header-tip {
-      font-size: 1.05rem;
-      color: var(--s50);
-      font-weight: 600;
+      font-family: 'Noto Serif TC', serif;
+      font-weight: 700;
+      font-size: 1.125rem;
+      /* 18px */
+      color: var(--n40);
+      /* 深土色，對齊 H2 規格 */
       max-width: 420px;
       line-height: 1.6;
       text-shadow: 0 1px 2px rgba(250, 246, 243, 0.8);
@@ -284,9 +301,13 @@
       text-align: right;
     }
 
+    .about-header-title span {
+      display: inline;
+    }
+
     .page-balance-title {
       font-size: 2.5rem;
-      font-weight: 600;
+      font-weight: 700;
       line-height: 1.5;
       color: var(--dark-navy);
       margin: 0 0 35px 0;
@@ -297,8 +318,8 @@
     }
 
     .page-buffer-title {
-      font-size: 2.8rem;
-      font-weight: 600;
+      font-size: 2.5rem;
+      font-weight: 700;
       color: var(--dark-navy);
       margin: 0;
       font-family: 'Noto Serif TC', serif;
@@ -312,7 +333,7 @@
       .site-header-mobile {
         display: block;
       }
-      
+
       .site-icon {
         position: fixed !important;
         top: 10px !important;
@@ -336,66 +357,125 @@
         text-align: center;
       }
 
+      .about-header-title {
+        font-size: 28px !important;
+        line-height: 1.3 !important;
+        margin-bottom: 8px;
+      }
+
+      .about-header-title span {
+        display: block;
+      }
+
       .about-header-tip {
+        font-size: 14px !important;
         text-align: center;
+      }
+
+      .sub-title {
+        font-size: 1.1rem !important;
+        color: var(--n40) !important;
+        line-height: 1.5 !important;
+        margin-bottom: 20px !important;
+      }
+
+      /* 降低行動端小螢幕噪點對小字體的干擾 */
+      .noise-overlay {
+        opacity: 0.035 !important;
+      }
+
+      /* 統一調整行動端段落的呼吸感行高 */
+      .page-container p {
+        line-height: 1.8 !important;
       }
 
       /* 語意分析跳轉動畫行動端佈局優化 */
       .analysis-anim-container {
         width: 100% !important;
         padding: 10px 5px !important;
-        height: 520px !important; /* 固定高度以支撐子元素 stretch */
+        height: 450px !important;
+        /* 固定高度以支撐子元素 stretch */
         display: flex !important;
         justify-content: space-between !important;
-        align-items: stretch !important; /* 撐滿子元素高度 */
+        align-items: stretch !important;
+        /* 撐滿子元素高度 */
         padding-top: 20px !important;
         box-sizing: border-box !important;
       }
+
       .analysis-text-block {
         width: 48% !important;
         font-size: 0.95rem !important;
-        line-height: 1.7 !important;
+        line-height: 1.8 !important;
+        /* 提升至 1.8 以強化呼吸感 */
       }
+
       .analysis-text-block p {
         font-size: 0.95rem !important;
         margin-bottom: 0.9em !important;
       }
+
       .analysis-text-title {
         font-size: 1.6rem !important;
         margin-bottom: 16px !important;
       }
+
       .analysis-tags-block {
         width: 48% !important;
-        height: 100% !important; /* 撐滿容器高度 */
+        height: 100% !important;
+        /* 撐滿容器高度 */
         display: flex !important;
         flex-direction: column !important;
-        justify-content: space-between !important; /* 上、中、下均勻分散對齊 */
-        gap: 0 !important; /* 移除寫死 gap，交由 space-between 自動分佈 */
-        padding: 15px 0 !important; /* 上下留適當內邊距防止貼邊 */
+        justify-content: space-between !important;
+        /* 上、中、下均勻分散對齊 */
+        gap: 0 !important;
+        /* 移除寫死 gap，交由 space-between 自動分佈 */
+        padding: 10px 0 45px 0 !important;
+        /* 上下留適當內邊距防止貼邊，加大底部 padding 以把最底部的標籤往上挪，防遮擋動畫 */
         box-sizing: border-box !important;
       }
+
+      /* 標籤視覺精緻度優化 (Noto Sans TC Bold / 12px)，避免小螢幕襯線體糊化 */
       .analysis-tag {
-        font-size: 0.82rem !important; /* 行動端標籤字型微調以減少折行 */
-        padding: 8px 10px !important;
+        font-family: 'Noto Sans TC', sans-serif !important;
+        font-weight: bold !important;
+        font-size: 12px !important;
+        padding: 6px 10px !important;
         line-height: 1.3 !important;
         word-break: break-all !important;
       }
 
+      /* 一般標籤優化 (Noto Sans TC Bold / 13px) */
+      .tag {
+        font-family: 'Noto Sans TC', sans-serif !important;
+        font-size: 13px !important;
+        font-weight: bold !important;
+        padding: 5px 12px !important;
+      }
+
       .page-balance-title {
-        font-size: 1.45rem !important;
-        line-height: 2.1 !important; /* 再度拓寬行距，使其在行動端折行時更加舒展優雅 */
+        font-size: 1.25rem !important;
+        line-height: 2.1 !important;
+        /* 再度拓寬行距，使其在行動端折行時更加舒展優雅 */
         margin-bottom: 25px !important;
         letter-spacing: 1px !important;
       }
+
+      .balance-cards {
+        gap: 80px !important;
+      }
+
       .page-buffer-title {
         font-size: 1.45rem !important;
-        line-height: 1.8 !important; /* 拓寬行距以優化載入頁視覺焦點 */
+        line-height: 1.8 !important;
+        /* 拓寬行距以優化載入頁視覺焦點 */
         letter-spacing: 1px !important;
       }
 
       /* 統一調整事件簡述等頁面標題在行動端的字體大小，保證兩行內呈現完畢 */
       h2.page-title {
         font-size: 1.8rem !important;
+        /* 相當於 28.8px，符合規格 */
         letter-spacing: 4px !important;
         margin-right: -4px !important;
         margin-bottom: 20px !important;
@@ -405,34 +485,48 @@
       /* 緩衝過渡頁面行動端重新垂直置中 */
       #page-semantic-buffer-want,
       #page-semantic-buffer-able,
+      #page-semantic-analysis-buffer-want,
+      #page-semantic-analysis-buffer-able,
       #page-bridge,
       #page-reality-check-buffer,
       #page-welcome-back,
       #page-expectation {
         justify-content: center !important;
         align-items: center !important;
-        padding-top: 56px !important; /* 避開頂部毛玻璃 header 並保持畫面置中 */
+        padding-top: 56px !important;
+        /* 避開頂部毛玻璃 header 並保持畫面置中 */
         overflow: hidden !important;
       }
 
-      /* 行動端特定過渡頁字體微調 */
+      /* 行動端特定過渡頁主標題規格化 (從 2.2rem 調整為 1.75rem，確保符合 28px 規格且不當折行) */
       #page-welcome-back h2 {
-        font-size: 2.2rem !important;
+        font-size: 1.75rem !important;
         margin-bottom: 10px !important;
       }
+
       #page-welcome-back p {
         font-size: 1.1rem !important;
       }
+
+      /* 行動端特定過渡頁主標題規格化 (從 2.0rem 調整為 1.75rem，確保符合 28px 規格且不當折行) */
       #page-expectation h2 {
-        font-size: 2.0rem !important;
+        font-size: 1.75rem !important;
         line-height: 1.5 !important;
+      }
+
+      /* 修正行動端螢光筆劃線導致句號被擠到下一行的排版問題 */
+      .hl-trigger {
+        display: inline !important;
+        white-space: normal !important;
       }
     }
 
     .label-tip {
-      font-size: 0.85rem;
-      color: var(--secondary);
-      font-weight: normal;
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 12px;
+      color: var(--n30);
+      font-weight: 300;
+      /* Noto Sans TC Light */
       margin-left: 8px;
       opacity: 0.85;
       display: inline-block;
@@ -645,7 +739,7 @@
       justify-content: center;
       align-items: center;
       gap: 14px;
-      margin-top: 48px;
+      margin-top: 24px;
     }
 
     .buffer-loader span {
@@ -879,9 +973,10 @@
     }
 
     .balance-card-sub {
-      font-size: 1.05rem;
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 12px;
       font-style: italic;
-      color: #6C757D;
+      color: var(--n30);
       margin-bottom: 18px;
     }
 
@@ -949,7 +1044,7 @@
         margin-top: 20px;
         align-self: center;
       }
-      
+
       /* 行動端拉桿標籤優化：強制顯示最左、最右以及 Active 節點的標籤，避免重疊 */
       .scale-label {
         opacity: 0;
@@ -957,6 +1052,7 @@
         pointer-events: none;
         transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
       }
+
       .scale-node-wrapper:first-child .scale-label,
       .scale-node-wrapper:last-child .scale-label,
       .scale-node-wrapper.active .scale-label {
@@ -965,19 +1061,20 @@
         font-size: 0.76rem !important;
         width: 70px !important;
       }
-      
+
       /* 最左邊標籤靠左對齊，防止超出螢幕 */
       .scale-node-wrapper:first-child .scale-label {
         left: 0 !important;
         transform: translateX(0) !important;
         text-align: left !important;
       }
+
       .scale-node-wrapper.active:first-child .scale-label {
         left: 0 !important;
         transform: translateY(-2px) !important;
         text-align: left !important;
       }
-      
+
       /* 最右邊標籤靠右對齊，防止超出螢幕 */
       .scale-node-wrapper:last-child .scale-label {
         left: auto !important;
@@ -985,6 +1082,7 @@
         transform: translateX(0) !important;
         text-align: right !important;
       }
+
       .scale-node-wrapper.active:last-child .scale-label {
         left: auto !important;
         right: 0 !important;
@@ -1241,11 +1339,15 @@
       stroke-dashoffset: 0;
     }
 
-    #arrow-1-want.active-marker, #arrow-2-want.active-marker, #arrow-3-want.active-marker {
+    #arrow-1-want.active-marker,
+    #arrow-2-want.active-marker,
+    #arrow-3-want.active-marker {
       marker-end: url(#arrowhead-want);
     }
 
-    #arrow-1-able.active-marker, #arrow-2-able.active-marker, #arrow-3-able.active-marker {
+    #arrow-1-able.active-marker,
+    #arrow-2-able.active-marker,
+    #arrow-3-able.active-marker {
       marker-end: url(#arrowhead-able);
     }
   </style>
@@ -1267,7 +1369,8 @@
 
     <!-- 頂部標題與 Tip 分區 -->
     <div class="about-header">
-      <h2 class="about-header-title">Things you want us to know about You</h2>
+      <h2 class="about-header-title"><span class="title-line1">Things you want us</span> <span class="title-line2">to
+          know about You</span></h2>
       <p class="about-header-tip">Tip: 選擇你覺得重要的選項即可。<br>但當然完整性也會影響成果 (這是你需要知道的)</p>
     </div>
 
@@ -1279,7 +1382,8 @@
         </div>
 
         <div class="form-group">
-          <input type="text" id="about-course-status" class="text-input" placeholder="長期投入的領域 eg:不一定專業，但長期關注 or 親身投入" maxlength="50">
+          <input type="text" id="about-course-status" class="text-input" placeholder="長期投入的領域 eg:不一定專業，但長期關注 or 親身投入"
+            maxlength="50">
         </div>
 
         <div class="form-group">
@@ -1287,7 +1391,8 @@
         </div>
 
         <div class="form-group">
-          <input type="text" id="about-economic-buffer" class="text-input" placeholder="你有的資本：緩衝時間、人脈、工具、經濟緩衝" maxlength="50">
+          <input type="text" id="about-economic-buffer" class="text-input" placeholder="你有的資本：緩衝時間、人脈、工具、經濟緩衝"
+            maxlength="50">
         </div>
       </div>
 
@@ -1302,7 +1407,8 @@
         </div>
 
         <div class="form-group">
-          <input type="text" id="about-personal-state" class="text-input" placeholder="一句話描述在這個領域的自己是什麼狀態" maxlength="50">
+          <input type="text" id="about-personal-state" class="text-input" placeholder="一句話描述在這個領域的自己是什麼狀態"
+            maxlength="50">
         </div>
 
         <div class="form-group">
@@ -1377,7 +1483,7 @@
 
     <h2 class="page-title"
       style="font-size: 2rem; margin-bottom: 40px; font-style: italic; font-family: 'Noto Serif TC', serif;">
-      What we had known about you — Want
+      What we had known<br>about you — Want
     </h2>
 
     <div id="review-content-want"
@@ -1521,7 +1627,8 @@
       <div class="analysis-text-block">
         <div class="analysis-text-title">Things we heard</div>
         <p>大三時我<span class="hl-trigger" id="hl-1-want">負責專題的底層架構</span>。期末發表時，教授和評審覺得畫面不夠華麗、功能不夠花俏，只給了中等分數。</p>
-        <p>但我很清楚，自己把<span class="hl-trigger" id="hl-2-want">原本混亂的模組梳理得井然有序</span>，<span class="hl-trigger" id="hl-3-want">代碼乾淨且擴充性極佳</span>。</p>
+        <p>但我很清楚，自己把<span class="hl-trigger" id="hl-2-want">原本混亂的模組梳理得井然有序</span>，<span class="hl-trigger"
+            id="hl-3-want">代碼乾淨且擴充性極佳</span>。</p>
         <p>不論別人怎麼看，我都對成果無比滿意。</p>
       </div>
 
@@ -1540,7 +1647,7 @@
       </div>
     </div>
     <!-- 等候動畫 -->
-    <div class="buffer-loader" style="margin-top: 48px;">
+    <div class="buffer-loader" style="margin-top: 24px;">
       <span></span>
       <span></span>
       <span></span>
@@ -1572,7 +1679,7 @@
       小朋友才做選擇<br>
       理想跟現實我都要
     </h2>
-    <div class="buffer-loader" style="margin-top: 48px;">
+    <div class="buffer-loader" style="margin-top: 24px;">
       <span></span>
       <span></span>
       <span></span>
@@ -1585,7 +1692,7 @@
 
     <h2 class="page-title"
       style="font-size: 2rem; margin-bottom: 40px; font-style: italic; font-family: 'Noto Serif TC', serif;">
-      What we had known about you — Able
+      What we had known<br>about you — Able
     </h2>
 
     <div id="review-content-able"
@@ -1629,7 +1736,7 @@
       「為什麼你是你自己」<br>
       而你是重要的，不論任何解釋意義
     </h2>
-    <div class="buffer-loader" style="margin-top: 48px;">
+    <div class="buffer-loader" style="margin-top: 24px;">
       <span></span>
       <span></span>
       <span></span>
@@ -1704,7 +1811,8 @@
       <div class="analysis-text-block">
         <div class="analysis-text-title">Things we heard</div>
         <p>大三時我<span class="hl-trigger" id="hl-1-able">負責專題的底層架構</span>。期末發表時，教授和評審覺得畫面不夠華麗、功能不夠花俏，只給了中等分數。</p>
-        <p>但我很清楚，自己把<span class="hl-trigger" id="hl-2-able">原本混亂的模組梳理得井然有序</span>，<span class="hl-trigger" id="hl-3-able">代碼乾淨且擴充性極佳</span>。</p>
+        <p>但我很清楚，自己把<span class="hl-trigger" id="hl-2-able">原本混亂的模組梳理得井然有序</span>，<span class="hl-trigger"
+            id="hl-3-able">代碼乾淨且擴充性極佳</span>。</p>
         <p>不論別人怎麼看，我都對成果無比滿意。</p>
       </div>
 
@@ -1723,7 +1831,7 @@
       </div>
     </div>
     <!-- 等候動畫 -->
-    <div class="buffer-loader" style="margin-top: 48px;">
+    <div class="buffer-loader" style="margin-top: 24px;">
       <span></span>
       <span></span>
       <span></span>
@@ -1753,7 +1861,7 @@
     <h2 id="reality-check-buffer-text" class="page-buffer-title" style="max-width: 800px; margin: 0 auto;">
       <!-- 動態寫入隨機文字 -->
     </h2>
-    <div class="buffer-loader" style="margin-top: 48px;">
+    <div class="buffer-loader" style="margin-top: 24px;">
       <span></span>
       <span></span>
       <span></span>
@@ -2302,7 +2410,7 @@ A01: 專業內容的跨背景轉譯, A02: 模糊情境下的問題核心辨識, 
         const cx = (x1 + x2) / 2;
         // 行動端調小 curveOffset，使曲線更加平緩自然
         const adjustedOffset = isMobile ? curveOffset * 0.6 : curveOffset;
-        const cy = (y1 + y2) / 2 + adjustedOffset; 
+        const cy = (y1 + y2) / 2 + adjustedOffset;
 
         const d = `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
         arrow.setAttribute('d', d);
