@@ -2209,7 +2209,8 @@ A01: 專業內容的跨背景轉譯, A02: 模糊情境下的問題核心辨識, 
           let rawText = data.response || '';
           rawText = rawText.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
           const result = JSON.parse(rawText);
-          return result.tags || [];
+          const rawTags = result.tags || [];
+          return rawTags.filter(tag => !tag.startsWith('B') && !tag.startsWith('C'));
         } else {
           // 雲端 Pages Functions 呼叫
           const response = await fetch('/analyze', {
@@ -2219,7 +2220,8 @@ A01: 專業內容的跨背景轉譯, A02: 模糊情境下的問題核心辨識, 
           });
           const data = await response.json();
           if (!response.ok) return [data.error || '連線失敗'];
-          return data.tags || [];
+          const rawTags = data.tags || [];
+          return rawTags.filter(tag => !tag.startsWith('B') && !tag.startsWith('C'));
         }
       } catch (e) {
         console.error("分析失敗:", e);
