@@ -17,14 +17,23 @@
 
 ```
 CareerMatch/
-├── index.html                       # 系統入口首頁（包含開場雲霧動畫與路徑引導）
-├── career-flow.html                 # 核心流程與前端 UI 控制器（包含 Want / Able 雙軌問卷與分析）
-├── subpages.html                    # 職涯圖鑑頁面（職涯諮詢師、資優班老師、心理諮商師之詳細能力樹與主線圖）
+├── index.html                       # 系統入口首頁（包含雲霧/手機開場動畫、路徑引導與會員入口）
+├── career-flow.html                 # 核心流程與前端 UI 控制器（包含 Want / Able 雙軌問卷、分析與會員入口）
+├── subpages.html                    # 職涯圖鑑頁面（詳細能力樹與主線圖）
+├── dashboard.html                   # 會員控制面板（RPG紙張風格，整合 Supabase Auth/Database 與本地資料同步）
 ├── wrangler.jsonc                   # Cloudflare Pages 配置文件（定義 assets 目錄與 AI 綁定）
 ├── CareerAnalyzer.Modelfile         # 本地 Ollama 特製模型 "career-analyzer" 定義檔
+├── schema.sql                       # Supabase 資料庫 Table 與 RLS 安全規則定義檔
+├── .env                             # 本地環境變數設定檔（儲存 Supabase 連線資訊等，不提交）
 │
 ├── functions/
-│   └── analyze.js                   # 雲端後端 Function（串接 Cloudflare Workers AI 或 Groq API）
+│   ├── analyze.js                   # 雲端後端語意分析 Function（串接 Cloudflare Workers AI 或 Groq API）
+│   └── api/
+│       └── config.js                # 提供前端取得環境設定資訊的轉發 API
+│
+├── docs/
+│   ├── OLLAMA_SETUP.md              # 本地 Ollama 語意分析環境架設指南
+│   └── SUPABASE_SETUP.md            # Supabase 資料庫與會員登入系統架設指南
 │
 ├── .agents/
 │   └── skills/
@@ -32,7 +41,7 @@ CareerMatch/
 │           └── tag-system.md        # 官方最新版職涯標籤系統定義文檔（A01-D13）
 │
 ├── test_cases.txt                   # 語意分析測試用 15 組 RPG 經歷測試集
-├── flow-pages.html.deprecated       # 【安全棄置】歷史問卷頁面，更名保留備用，防止工具誤改
+├── flow-pages.html.deprecated       # 【安全棄置】歷史問卷頁面
 └── career_rpg_progress_summary.md   # 本文件（專案交接與架構說明）
 ```
 
@@ -54,6 +63,8 @@ CareerMatch/
 *   **高斯模糊轉場 (Gaussian Blur Transition)**：頁面切換全面棄用滑動效果，改採柔和的 `opacity` + `filter: blur` 的高斯模糊淡入淡出，提升沉浸感。
 *   **防誤觸 (Click Prevention)**：按鈕 Keyframes 動畫執行期間設定 `pointer-events: none`，動畫完全呈現後轉為 `auto`，防止使用者在動畫未完成時重複點擊造成非預期路由錯誤。
 *   **重整閃爍優化**：在 `window.onload` 初始化載入時，呼叫 `goTo(target, true)`（`immediate = true`）略過退場動畫，直接將當前 `localStorage` 記錄的頁面渲染出來，解決畫面閃爍問題。
+*   **開場動畫影片分流**：手機版開場動畫影片已替換為 `開場M.mov`，並優化了不同設備寬度下的自動載入與播放邏輯，提升行動裝置的首屏視覺品質。
+*   **行動裝置標題折行**：針對「things you wish us to know about you」等頁面之行動裝置版主標題進行 CSS 調整，使其能優雅折成兩行呈現，避免窄螢幕下的文字擠壓。
 
 ### 3.2 狀態持久化與重導向
 *   **持久化機制**：使用 `localStorage` 儲存使用者的答題狀態、當前頁面 `pageId`，以及是否已完成第一次探索的解鎖標記 `careerRPG_hasCompletedFirstRun`。
@@ -62,6 +73,7 @@ CareerMatch/
     *   未完成探索者：引導至各自的故事引導流程。
 *   **安全重導向**：若使用者未解鎖成果頁卻嘗試直接載入回顧頁，系統會自動將其重導向至引言頁面 `page-dreams-intro`，保護流程的完整性。
 *   **路由重設**：支援 URL 參數 `?step=start`，當偵測到此參數時，會自動清空 `localStorage` 中關於 RPG 流程的紀錄，並將路由重新定向至初始引導。
+*   **會員中心入口**：在 `index.html` 與 `career-flow.html` 的右上角整合了「會員中心 ➔」入口按鈕，點擊後會正確載入 RPG 紙張風格的會員控制面板（`dashboard.html`），修復了之前按鈕跳轉至空白頁面的問題。
 
 ### 3.3 雙軌與雙向綁定 (Two-way Binding)
 *   **Want（想不想）軌道**：
@@ -220,3 +232,63 @@ CareerMatch/
         ```
 3.  **邊界規則微調**：
     *   如後續有新增其他經歷的測試且發生預期外的判定偏離，可參考 [llm_calibration_analysis.md](file:///Users/hongpeiyuan/.gemini/antigravity-ide/brain/7aca348b-ff1a-4fe9-b1f8-241e30587186/llm_calibration_analysis.md) 以相同的 Methodologies，在 Modelfile 與 `analyze.js` 中調整 "Negative Constraints" 並擴充 Few-Shot 範例。
+
+---
+
+## 7. Supabase 會員系統與資料庫整合 (Supabase Auth & Database Integration)
+
+為了解決使用者進度儲存與多端同步的需求，本專案引進了 **Supabase** 後台會員系統，其實作邏輯與架構如下：
+
+### 7.1 資料庫設計與安全性策略 (Database Schema & RLS)
+*   **[schema.sql](file:///Users/hongpeiyuan/Desktop/Brian/Programming%20Stuff/antiproject/CareerMatch/schema.sql)**：定義了 `user_progress` 資料表，用以存放使用者的職涯探索歷程與標籤結果。
+*   **資料結構**：
+    *   `id` (UUID, 主鍵)：自動生成。
+    *   `user_id` (UUID, 外鍵)：連結至 Supabase Auth 的 `users` 表。
+    *   `career_flow_state` (JSONB)：保存使用者當前作答的問卷完整狀態與 `pageId`，用以達成中途儲存與復原。
+    *   `analysis_results` (JSONB)：儲存 AI 分析後產生的向度、標籤陣列與推薦職涯。
+    *   `created_at` (Timestamp)：記錄探索時間。
+*   **RLS (Row Level Security) 政策**：
+    *   啟用 RLS 以確保資料安全，限制使用者僅能「查詢 (SELECT)」、「插入 (INSERT)」、「更新 (UPDATE)」與「刪除 (DELETE)」屬於自己 `user_id` 的資料列，防止跨帳號越權存取。
+
+### 7.2 會員中心面板 (dashboard.html)
+*   **視覺風格**：採用與整體專案一致的 **RPG 復古羊皮紙/紙張質感風格**，搭配深色優雅的按鈕與流暢的毛玻璃、陰影微動畫。系統已全面摒棄了瀏覽器預設的所有原生 `confirm` 彈窗，改採自訂的 **RPG 風格刪除確認彈跳視窗** 與 **開始全新探索確認彈跳視窗**，在維持操作安全性提示的同時，大幅提升整體的視覺美感與風格一致性。
+*   **認證方式**：
+    *   **Email 與密碼**：支援註冊與登入。為了安全性，註冊帳號時不採用「註冊即登入」，而是主動清除並登出臨時 session，並顯示提示要求使用者先前往信箱點擊連結驗證，驗證成功後才能手動登入。
+    *   **Google 帳號第三方登入 (OAuth)**：整合 Google 認證，透過 `supabaseClient.auth.signInWithOAuth` 快速登入。
+    *   **錯誤訊息中文化**：針對常見的驗證失敗錯誤（例如 `invalid login credentials`），前端已攔截並轉換為「帳號或密碼錯誤，請重新輸入。」等親切的中文提示。
+*   **進度承接與同步機制**：
+    *   **未登入本地偵測**：當使用者登入後，系統會主動偵測 `localStorage` 中是否存在未登入時進行的問卷進度或歷史成果。
+    *   **一鍵同步引導**：若偵測到本地資料，會跳出同步提示，引導使用者一鍵將本地進度「同步至雲端資料庫」，完成後自動清除本地佔用。
+    *   **靜默自動同步 (Auto-Save)**：若使用者已登入，當探索問卷中的 Wants 軌或 Able 軌的 AI 標籤解析完畢，或當送出現實篩選進入成果推薦頁時，系統會**自動且靜默地將所有輸入文字與解析出的標籤打包同步至雲端資料庫**。為了解決非同步加載異步競爭，系統會在 Supabase 連線初始化完成後若偵測到使用者停留在成果頁時**主動補發一次同步**，且在 `autoSaveToSupabase` 中加入 `isAutoSaving` **防重入鎖**並優化呼叫點，避免並行發送 duplicate 請求導致資料庫 insert 衝突。
+    *   **智慧覆寫與重命名**：為防產生重複雜亂的歷史存檔，同一次探索會被紀錄在同一個資料表列中（透過在 LocalStorage 中快取 `currentRecordId`）。成果頁的同步按鈕會自動轉換為「修改存檔名稱」，方便使用者直接在雲端重新命名該自動同步紀錄。
+    *   **載入與自動還原 (Auto-Restore)**：手動點選「📖 載入紀錄」會還原該筆 ID；更重要的是，當使用者已登入且進入網頁時，系統會**在背景自動向雲端查詢並索取最後一次的探索進度**。若本地資料不存在或與雲端 ID 不符（例如使用者換瀏覽器登入），系統會自動拉取雲端存檔覆寫回本機快取，還原各輸入框與量表，並跳轉至紀錄當前的進度頁，達成無縫多端載入。
+    *   **成果頁主控按鈕與 RPG Modal 整合**：成果頁底部新增「接續職業冒險」與「開始全新職業探索」控制按鈕。前者引導使用者回首頁，後者則觸發專用 RPG 卡片式確認 Modal，確認後清除所有本地暫存快取並重導向至 `career-flow.html?step=start` 以提供乾淨的重置體驗。
+    *   **強制重導向成果頁 (Professions Page Redirection)**：當使用者抵達過「職涯推薦」成果頁且尚未點選「接續職業冒險」或「開始全新職業探索」時（`careerRPG_hasCompletedFirstRun === 'true'` 且 `careerRPG_adventureContinued !== 'true'`），系統會強制將使用者重導向回成果頁。不論是直接訪問首頁 `index.html` 還是進入 `career-flow.html`（忽略一般跳轉與 URL 參數），均會被強制導向至成果頁以維持問卷完整性。
+    *   **現實篩選提交確認彈窗**：在「現實篩選」頁面點擊送出時，會彈出 RPG 紙張風格的「提交確認」彈窗，確認後才送出並抵達成果頁（並自動重置 `careerRPG_adventureContinued` 狀態為 `'false'` 觸發重導向機制）。
+    *   **新探索重置與保護 (URL Protection)**：點選「開始全新探索」或 URL 包含 `?step=start` 時，除了清空本機快取與 ID，自動還原函數亦會智慧過濾此參數，禁止拉回舊檔案，以確保全新探索為乾淨獨立 Nobles 的資料列。
+
+### 7.3 設定資訊安全轉發 (functions/api/config.js)
+*   為保護 Supabase 的 API Key 與 URL，前端不直接硬編碼金鑰，而是向 `/api/config` 發起 GET 請求。
+*   後端 Function 會從環境變數中讀取 `SUPABASE_URL` 與 `SUPABASE_ANON_KEY` 並回傳給前端，以便前端初始化 `supabaseClient`。
+*   **開發環境 Fallback**：當前端在 Live Server (Port 5500) 本地執行時，若 fetch `/api/config` 發生跨域或 404，會自動 Fallback 智慧請求本地 Wrangler Pages Dev (`http://localhost:8787/api/config`)，確保前後端連線順暢。
+
+---
+
+## 8. 本地開發與環境部署指南 (Development & Deployment Guide)
+
+為提供開發人員與使用者開箱即用的架設路徑，本專案在 `docs/` 資料夾下建立了兩份完整的指南，並針對 Cloudflare Pages Functions 本地開發進行了調整。
+
+### 8.1 架設與設定指南
+*   **[OLLAMA_SETUP.md](file:///Users/hongpeiyuan/Desktop/Brian/Programming%20Stuff/antiproject/CareerMatch/docs/OLLAMA_SETUP.md)**：
+    *   引導如何在本地安裝 Ollama、載入特製模型 `career-analyzer`，以及解決 CORS 跨來源資安阻擋問題（設定 `OLLAMA_ORIGINS="*"`）。
+*   **[SUPABASE_SETUP.md](file:///Users/hongpeiyuan/Desktop/Brian/Programming%20Stuff/antiproject/CareerMatch/docs/SUPABASE_SETUP.md)**：
+    *   引導如何在 Supabase 建立專案、匯入 `schema.sql`、開啟 Google Provider 並設定 Google Cloud Console 的 Client ID 與 Secret，以及將 Supabase 金鑰設定至 Cloudflare 環境變數。
+
+### 8.2 Wrangler Pages Dev 本地開發實踐與踩坑
+*   **Functions 路由掛載限制**：
+    *   在 Page Functions 專案中，使用普通的 `npx wrangler dev` 會導致 Functions 的路由失效並回傳 404。
+    *   **Correct 啟動指令**：必須使用 `npx wrangler pages dev . --port 8787` 來明確指定 Pages 靜態資產目錄為當前目錄 `.`，後端 Function 路由才能正確編譯並掛載。
+*   **Workers AI 遠端代理認證阻擋**：
+    *   由於 `wrangler.jsonc` 包含 `AI` 綁定，`pages dev` 在本地啟動時會強制以 Remote 模式執行，若開發者未登入 Cloudflare 帳號會引發 `must be logged in` 阻擋而無法啟動。
+    *   **解決決策**：在本地開發時，可暫時在 `wrangler.jsonc` 中將 `ai` 綁定區塊註釋或移除。本地開發測試時，前端會自動導向本地的 Ollama 分析，不依賴 Workers AI，因此能繞過此限制，待部署生產環境時再透過 Cloudflare Dashboard 綁定 AI 服務即可。
+
