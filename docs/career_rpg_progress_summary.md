@@ -265,7 +265,15 @@ CareerMatch/
     *   **成果頁主控按鈕與 RPG Modal 整合**：成果頁底部新增「接續職業冒險」與「開始全新職業探索」控制按鈕。前者引導使用者回首頁，後者則觸發專用 RPG 卡片式確認 Modal，確認後清除所有本地暫存快取並重導向至 `career-flow.html?step=start` 以提供乾淨的重置體驗。
     *   **強制重導向成果頁 (Professions Page Redirection)**：當使用者抵達過「職涯推薦」成果頁且尚未點選「接續職業冒險」或「開始全新職業探索」時（`careerRPG_hasCompletedFirstRun === 'true'` 且 `careerRPG_adventureContinued !== 'true'`），系統會強制將使用者重導向回成果頁。不論是直接訪問首頁 `index.html` 還是進入 `career-flow.html`（忽略一般跳轉與 URL 參數），均會被強制導向至成果頁以維持問卷完整性。
     *   **現實篩選提交確認彈窗**：在「現實篩選」頁面點擊送出時，會彈出 RPG 紙張風格的「提交確認」彈窗，確認後才送出並抵達成果頁（並自動重置 `careerRPG_adventureContinued` 狀態為 `'false'` 觸發重導向機制）。
-    *   **新探索重置與保護 (URL Protection)**：點選「開始全新探索」或 URL 包含 `?step=start` 時，除了清空本機快取與 ID，自動還原函數亦會智慧過濾此參數，禁止拉回舊檔案，以確保全新探索為乾淨獨立 Nobles 的資料列。
+    *   **新探索重置與保護 (URL Protection)**：點選「開始全新探索」或 URL 包含 `?step=start` 時，除了清空本機快取與 ID，自動還原函數亦會智慧過濾此參數，禁止拉回舊檔案，以確保全新探索為乾淨獨立的資料列。
+    *   **歷史探索紀錄批量刪除**：
+        *   **批量管理 UI**：在歷史探索回憶列表的標題旁新增「⚙️ 批量管理」按鈕。啟用時，列表會切換至 `.batch-mode`，卡片左側會以淡入動畫顯示自訂 Checkbox，同時右側的單筆操作按鈕（載入、修改名稱、刪除）會自動隱藏，避免使用者誤觸。
+        *   **批量控制列**：列表上方會顯示一個自訂風格的批量操作控制列，包含「全選」、「取消全選」按鈕，並即時以「已選取 X 筆」顯示當前勾選數量，且只有在勾選數大於 0 時才會啟用「🗑️ 刪除已選取」按鈕。
+        *   **網頁內置風格確認彈窗**：點選批量刪除時，不再使用瀏覽器預設的彈窗，而是重用網頁內建的 `#delete-confirm-modal`。藉由在 JavaScript 中設定 `deleteMode` (可為 `'single'` 或 `'batch'`) 與暫存 `batchIdsToDelete`，動態調整 Modal 內的提示文字。
+        *   **狀態快照拷貝防護（Bug 修復）**：為了解決呼叫 `closeDeleteModal()` 會提早重置刪除狀態導致 API 無法正常發送的問題，在實際執行刪除前會先將 `deleteMode`、`deleteRecordId` 等全域變數存入函數內部的局部變數（狀態快照），再進行 Modal 的重置與關閉，確保刪除邏輯 100% 正確執行。
+        *   **Supabase 批量刪除**：確認後，使用 `.delete().in('id', array)` 一次性發送 API 刪除所有選中的紀錄。如果刪除的紀錄中包含目前正載入的紀錄 ID，則一併清除本機快取。
+    *   **返回上一頁按鈕優化**：
+        *   將會員中心右上角的「返回上一頁」按鈕從寫死跳轉 `index.html`，改為使用 `document.referrer` 進行智能判斷。當有前一個來源頁面時呼叫 `history.back()` 返回真實的上一頁；若無來源（例如使用者直接輸入 URL 進入），則安全 fallback 降級跳轉至 `index.html`。
 
 ### 7.3 設定資訊安全轉發 (functions/api/config.js)
 *   為保護 Supabase 的 API Key 與 URL，前端不直接硬編碼金鑰，而是向 `/api/config` 發起 GET 請求。
@@ -283,6 +291,9 @@ CareerMatch/
     *   引導如何在本地安裝 Ollama、載入特製模型 `career-analyzer`，以及解決 CORS 跨來源資安阻擋問題（設定 `OLLAMA_ORIGINS="*"`）。
 *   **[SUPABASE_SETUP.md](file:///Users/hongpeiyuan/Desktop/Brian/Programming%20Stuff/antiproject/CareerMatch/docs/SUPABASE_SETUP.md)**：
     *   引導如何在 Supabase 建立專案、匯入 `schema.sql`、開啟 Google Provider 並設定 Google Cloud Console 的 Client ID 與 Secret，以及將 Supabase 金鑰設定至 Cloudflare 環境變數。
+*   **一鍵啟動主控台軟體 (啟動初路.app 與 control_server.js)**：
+    *   專案根目錄下附帶有 AppleScript 與 Node.js 聯合開發之 macOS 一鍵啟動軟體 `啟動初路.app`。
+    *   **核心功能**：雙擊即可一鍵在背景啟動 Node.js 控制伺服器（`control_server.js`，Port: 9000），並自動在瀏覽器中開啟「初路 - 開發伺服器主控台」網頁。該控制網頁採用與初路網站完全一致的精美毛玻璃/靜白紙張美學風格，完美支援 macOS 觸控板輕觸點擊（Tap to click），且透過 HTML5 原生 Server-Sent Events (SSE) 串流即時顯示 Wrangler 運行日誌。提供「一鍵啟動所有服務」、「在瀏覽器開啟網頁」、「單獨關閉網頁伺服器」、「單獨關閉 Ollama」與「一鍵關閉所有服務」等按鈕，徹底避開了 Tkinter 視窗聚焦與事件吞噬的歷史缺陷。
 
 ### 8.2 Wrangler Pages Dev 本地開發實踐與踩坑
 *   **Functions 路由掛載限制**：
