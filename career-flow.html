@@ -3138,6 +3138,12 @@ A01: 專業內容的跨背景轉譯, A02: 模糊情境下的問題核心辨識, 
         return;
       }
 
+      // 如果正在接續冒險，也絕不用雲端舊資料覆蓋本地進度，因為接續冒險旨在產生新紀錄
+      if (localStorage.getItem('careerRPG_adventureContinued') === 'true') {
+        console.log('【autoRestore 跳過】接續職業冒險中，不拉取雲端舊資料覆蓋');
+        return;
+      }
+
       // 如果 URL 帶有開始新測驗參數（舊有保護，實際上此時 URL 已被清除，靠 isFreshExploration 接手）
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('step') === 'start') return;
@@ -3160,8 +3166,10 @@ A01: 專業內容的跨背景轉譯, A02: 模糊情境下的問題核心辨識, 
           const localRecordId = localStorage.getItem('careerRPG_currentRecordId');
           const localProgressExists = localStorage.getItem('careerRPG_data') !== null;
 
-          // 只有當本地無探索資料，或者本地目前的紀錄 ID 與雲端最新這筆不一致時，才自動下載載入
-          if (!localProgressExists || localRecordId !== cloudRecordId) {
+          // 只有當本地完全無探索資料時（例如新裝置登入），
+          // 或者當本地有舊的紀錄 ID 且與雲端最新這筆不一致時，才自動下載還原。
+          // 若本地沒有紀錄 ID（例如正在填寫全新或接續的一筆新探索），則絕對不要被雲端舊紀錄覆寫。
+          if (!localProgressExists || (localRecordId && localRecordId !== cloudRecordId)) {
             // 先判斷：若本地有更新的完成資料（ID 不同且本地剛完成）需先存雲端，再拉取
             const localHasCompleted = localStorage.getItem('careerRPG_hasCompletedFirstRun') === 'true';
             const localContinued = localStorage.getItem('careerRPG_adventureContinued') === 'true';
@@ -3214,7 +3222,7 @@ A01: 專業內容的跨背景轉譯, A02: 模糊情境下的問題核心辨識, 
             } else if (!pData.careerRPG_adventureContinued) {
               goTo(targetPage, true);
             }
-            // 如果 pData.careerRPG_adventureContinued 是 true，代表已接續冒險，此時絕不進行自動跳轉，讓使用者保持停留在當前點選的頁面
+            // 如果 pData.careerRPG_adventureContinued 是 true，代表已接續冒險，此時推遲不進行自動跳轉，讓使用者保持停留在當前點選的頁面
 
             // 更新同步 UI 文字
             updateSyncButtonUI(true);
@@ -3773,6 +3781,7 @@ A01: 專業內容的跨背景轉譯, A02: 模糊情境下的問題核心辨識, 
       localStorage.removeItem('careerRPG_hasAbleHistory');
       localStorage.removeItem('careerRPG_hasCompletedFirstRun');
       localStorage.removeItem('careerRPG_adventureContinued');
+      localStorage.setItem('careerRPG_isNewExploration', 'true');
 
       // 重導向至首頁
       window.location.href = 'index.html';
@@ -3844,14 +3853,25 @@ A01: 專業內容的跨背景轉譯, A02: 模糊情境下的問題核心辨識, 
         history.replaceState(null, '', window.location.pathname);
       }
 
-      if (step === 'start') {
-        if (localStorage.getItem('careerRPG_adventureContinued') === 'true') {
+      const isNewExplorationFlag = localStorage.getItem('careerRPG_isNewExploration') === 'true';
+      const isAdventureContinued = localStorage.getItem('careerRPG_adventureContinued') === 'true';
+
+      if (step === 'start' || isNewExplorationFlag) {
+        // 清除暫存 flag
+        localStorage.removeItem('careerRPG_isNewExploration');
+
+        if (isAdventureContinued) {
           // 接續冒險：不清除答題資料，僅重設目前頁面定位，並清除紀錄 ID 以便存成新一筆歷史紀錄
           isFreshExploration = true; // ← 新探索保護鎖，防止 autoRestoreLastProgress 覆蓋本地資料
           localStorage.removeItem('careerRPG_page');
           localStorage.removeItem('careerRPG_currentRecordId');
           localStorage.removeItem('careerRPG_currentRecordName');
-          goTo('page-about-you', true);
+          
+          if (step && step !== 'start') {
+            goTo(step, true);
+          } else {
+            goTo('page-about-you', true);
+          }
         } else {
           // 全新開始：清除所有快取，並設定新探索保護鎖
           isFreshExploration = true; // ← 新探索保護鎖，防止 autoRestoreLastProgress 覆蓋新填寫資料
@@ -3865,16 +3885,16 @@ A01: 專業內容的跨背景轉譯, A02: 模糊情境下的問題核心辨識, 
           localStorage.removeItem('careerRPG_adventureContinued');
           userProgressData = {};
           document.querySelectorAll('.text-input, textarea.text-input').forEach(input => input.value = '');
-          goTo('page-about-you', true);
+          
+          if (step && step !== 'start') {
+            goTo(step, true);
+          } else {
+            goTo('page-about-you', true);
+          }
         }
-      } else if (localStorage.getItem('careerRPG_hasCompletedFirstRun') === 'true' &&
-        localStorage.getItem('careerRPG_adventureContinued') !== 'true') {
+      } else if (localStorage.getItem('careerRPG_hasCompletedFirstRun') === 'true' && !isAdventureContinued) {
         // 強制導向成果頁
         goTo('page-professions', true);
-      } else if (step === 'page-menu') {
-        goTo('page-menu', true);
-      } else if (step === 'page-dreams-intro') {
-        goTo('page-dreams-intro', true);
       } else if (step) {
         goTo(step, true);
       } else if (savedPage) {
