@@ -1939,7 +1939,7 @@
   <div id="page-bridge" class="page-container"
     style="justify-content: center; align-items: center; text-align: center;">
     <h2 class="page-buffer-title">
-      有夢最美，也要逐夢踏實<br>
+      有夢最美，也要築夢踏實<br>
       小朋友才做選擇<br>
       理想跟現實我都要
     </h2>
@@ -3797,19 +3797,13 @@ A01: 專業內容的跨背景轉譯, A02: 模糊情境下的問題核心辨識, 
       window.location.href = 'dashboard.html';
     }
 
-    async function continueAdventureFromFlow() {
+    function continueAdventureFromFlow() {
+      // 紀錄已在使用者按下「是」抵達成果頁時自動存入雲端，此處無需再次呼叫 autoSaveToSupabase。
+      // 只需將 adventureContinued 設為 true，並清除 currentRecordId，
+      // 讓使用者下一次完成探索時產生全新一筆紀錄，與本次完成的紀錄互不影響。
       localStorage.setItem('careerRPG_adventureContinued', 'true');
-
-      // 【修正】先用現有的 currentRecordId 更新雲端紀錄（將 adventureContinued: true 寫入），
-      // 再清除 ID，確保不會在無 ID 狀態下 insert，造成重複紀錄。
-      if (typeof autoSaveToSupabase === 'function') {
-        await autoSaveToSupabase();
-      }
-
-      // 清除紀錄 ID：讓接下來的修改與存檔寫入新紀錄，不影響原本的歷史備份
       localStorage.removeItem('careerRPG_currentRecordId');
       localStorage.removeItem('careerRPG_currentRecordName');
-
       window.location.href = 'index.html';
     }
 

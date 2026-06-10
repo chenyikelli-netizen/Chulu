@@ -1495,13 +1495,13 @@
         localStorage.setItem('careerRPG_adventureContinued', 'true');
         localStorage.setItem('careerRPG_hasCompletedFirstRun', 'false');
 
-        showGlobalMessage("紀錄載入成功！即將進入探索之旅！");
+        showGlobalMessage("紀錄載入成功！即將返回首頁！");
 
-        // 倒數 1.5 秒，導向 ?step=start：
-        // career-flow.html 會設置 isFreshExploration=true，
-        // 防止 autoRestoreLastProgress 把雲端舊 ID 帶回並覆蓋本地預填資料
+        // 倒數 1.5 秒，導向首頁（index.html）：
+        // 使用者從首頁選擇進入 career-flow.html?step=start 時，
+        // career-flow 會設置 isFreshExploration=true 並以預填資料開始新探索
         setTimeout(() => {
-          window.location.href = `career-flow.html?step=start`;
+          window.location.href = `index.html`;
         }, 1500);
 
       } catch (err) {
