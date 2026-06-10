@@ -3793,15 +3793,17 @@ A01: 專業內容的跨背景轉譯, A02: 模糊情境下的問題核心辨識, 
 
     async function continueAdventureFromFlow() {
       localStorage.setItem('careerRPG_adventureContinued', 'true');
-      // 【關鍵】既然要接續並重新修改，這一整趟應該被視為一筆全新的歷史紀錄。
-      // 因此清除當前紀錄 ID，讓接下來的任何修改與存檔都寫入新紀錄中，不影響原本的歷史備份。
-      localStorage.removeItem('careerRPG_currentRecordId');
-      localStorage.removeItem('careerRPG_currentRecordName');
 
-      // 靜默自動同步狀態至 Supabase
+      // 【修正】先用現有的 currentRecordId 更新雲端紀錄（將 adventureContinued: true 寫入），
+      // 再清除 ID，確保不會在無 ID 狀態下 insert，造成重複紀錄。
       if (typeof autoSaveToSupabase === 'function') {
         await autoSaveToSupabase();
       }
+
+      // 清除紀錄 ID：讓接下來的修改與存檔寫入新紀錄，不影響原本的歷史備份
+      localStorage.removeItem('careerRPG_currentRecordId');
+      localStorage.removeItem('careerRPG_currentRecordName');
+
       window.location.href = 'index.html';
     }
 
