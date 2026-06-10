@@ -107,24 +107,35 @@
       position: relative;
     }
 
-    .logo-group {
-      display: flex;
-      align-items: center;
-      gap: 15px;
+    /* 左上角 Icon */
+    .site-icon {
+      position: absolute;
+      top: 20px;
+      left: 40px;
+      width: 80px;
+      height: auto;
+      z-index: 60;
       cursor: pointer;
+      transition: transform 0.2s ease;
     }
 
-    .logo-icon {
-      width: 45px;
-      height: 45px;
+    .site-icon:hover {
+      transform: scale(1.05);
     }
 
-    .logo-title {
-      font-size: 1.8rem;
-      font-weight: 600;
-      letter-spacing: 4px;
-      color: var(--n50);
-      margin: 0;
+    /* 行動端固定頂部毛玻璃條 */
+    .site-header-mobile {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 56px;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 99;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.5);
     }
 
     .nav-btn {
@@ -766,6 +777,22 @@
 
     /* ===== 行動裝置 (768px 以下) 歷史探索回憶介面優化 ===== */
     @media (max-width: 768px) {
+      .site-header-mobile {
+        display: block;
+      }
+
+      .site-icon {
+        position: fixed !important;
+        top: 10px !important;
+        left: 15px !important;
+        width: 36px !important;
+        z-index: 1000 !important;
+      }
+
+      .container {
+        padding-top: 80px !important; /* 行動端避開 fixed header */
+      }
+
       .record-card {
         display: grid !important;
         grid-template-columns: auto 1fr;
@@ -854,19 +881,13 @@
     <div id="loader-text" class="loader-text">冒險載入中...</div>
   </div>
 
+  <!-- 行動端固定頂部毛玻璃條 -->
+  <div class="site-header-mobile"></div>
+
+  <!-- 左上角 Icon -->
+  <img src="assets/icon.png" class="site-icon" alt="Career Match Icon" onclick="window.location.href='index.html'">
+
   <div class="container fade-container" id="main-container">
-    <header>
-      <div class="logo-group" onclick="window.location.href='index.html'">
-        <!-- SVG 拱門 logo -->
-        <svg class="logo-icon" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-          <path d="M 28,175 L 28,102 Q 28,30 100,30 Q 172,30 172,102 L 172,175" fill="none" stroke="#2C2A26"
-            stroke-width="26" stroke-linecap="round" />
-          <path d="M 68,175 L 68,114 Q 68,74 100,74 Q 132,74 132,114 L 132,175" fill="none" stroke="#2C2A26"
-            stroke-width="22" stroke-linecap="round" />
-        </svg>
-        <h1 class="logo-title">初路</h1>
-      </div>
-    </header>
 
     <!-- 訊息提示橫幅 -->
     <div id="global-message" class="message-banner"></div>
