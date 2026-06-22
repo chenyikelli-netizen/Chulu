@@ -4,6 +4,13 @@ export async function onRequestPost(context) {
   try {
     const { text } = await request.json();
 
+    if (!env.AI) {
+      return new Response(JSON.stringify({ error: "Cloudflare Workers AI 未綁定。請確認 wrangler.jsonc 中包含 \"ai\": { \"binding\": \"AI\" } 設定。" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+
     const systemPrompt = `你是一個專業的職涯標籤辨識系統。
 你的任務是：根據使用者輸入的經歷描述，從以下【標籤庫】中，選出最符合的 2 至 3 個標籤。
 
@@ -12,7 +19,7 @@ export async function onRequestPost(context) {
 2. 每個標籤必須有描述中的明確證據支撐，不得推斷未提及內容。
 3. 若描述不足以支撐 any 任何標籤，請回傳空陣列：{"tags": []}。
 4. 輸出格式必須嚴格遵守 JSON 結構，如：{"tags": ["A01: 專業內容的跨背景轉譯", "D09: 通用數位工具操作"]}。
-5. 不要輸出任何解釋文字，只要回傳 JSON。
+5. 不要輸出 any 任何解釋文字，只要回傳 JSON。
 
 【判定校正規則】（強制遵循）
 1. 自學與技術研發排除：禁止將任何「自學技術、自學 Web 框架、寫程式、研發核心架構」等操作判定為 D03: 訪談與提問引導。這些應歸為 D09: 通用數位工具操作。
@@ -37,97 +44,44 @@ A01: 專業內容的跨背景轉譯, A02: 模糊情境下的問題核心辨識, 
       }
     };
 
-    // 判斷是否使用 Cloudflare Workers AI
-    if (env.USE_CLOUDFLARE_AI === "true" && env.AI) {
-      const aiResponse = await env.AI.run("@cf/qwen/qwen2.5-coder-32b-instruct", {
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: "我負責核心架構開發，在 48 小時內自學了全新的 Web 框架，並成功克服了多端同步的技術瓶頸，獲得導師高度肯定。" },
-          { role: "assistant", content: '{"tags": ["A06: 概念到執行方向的結構拆解", "D09: 通用數位工具操作"]}' },
-          { role: "user", content: "在醫院擔任志工時，面對焦慮的家屬，我能冷靜地安撫他們的情緒並提供協助。即便這個過程非常耗費心神，但看到家屬能稍微安心，我願意再次投入這樣高強度的心靈支持工作。" },
-          { role: "assistant", content: '{"tags": ["D01: 口語表達", "D02: 主動傾聽與語義提取"]}' },
-          { role: "user", content: "我曾獨立完成一個自動化報表系統，大幅減少了同仁手動輸入的時間。雖然主管當下沒有特別表揚，但我對自己能精簡流程並提升整體工作效率的成果感到非常滿意。" },
-          { role: "assistant", content: '{"tags": ["A08: 工作流程的診斷與改善判斷", "D09: 通用數位工具操作"]}' },
-          { role: "user", content: "在資源有限的情況下，我利用手邊現有的免代碼工具製作了一個自動化行銷漏斗。即使這不是我的本職工作，也沒有獎金，但看到實際轉換率因此提升，我覺得這種創造價值的過程非常迷人。" },
-          { role: "assistant", content: '{"tags": ["D09: 通用數位工具操作", "A13: 資源條件與投入時機的判斷"]}' },
-          { role: "user", content: "負責將公司超過十年、極其混亂的零散紙本檔案全部轉化為高效的數位檢索系統。" },
-          { role: "assistant", content: '{"tags": ["A08: 工作流程的診斷與改善判斷", "D08: 數據讀取與分析操作"]}' },
-          { role: "user", content: "我獨立規劃了資料庫架構與分類邏輯，克服了原始資料格式不一的問題，建立了一套讓團隊成員能在三秒內精準檢索的系統。" },
-          { role: "assistant", content: '{"tags": ["A03: 大量資訊中的規律辨識", "D09: 通用數位工具操作"]}' },
-          { role: "user", content: "在一次大型戶外活動中，原定的場地突然因為天氣因素無法使用，我迅速聯繫了備案場地並在兩小時內指揮搬運隊完成所有物資轉移。雖然過程混亂，但我對自己能靈活調度資源感到滿意。" },
-          { role: "assistant", content: '{"tags": ["A11: 複合變數失控下的應變判斷", "A13: 資源條件與投入時機的判斷"]}' },
-          { role: "user", content: "曾擔任繁忙捷運站旁的連鎖餐廳店長，在尖峰時刻面對人手嚴重不足且客訴不斷的壓力測試。" },
-          { role: "assistant", content: '{"tags": ["A11: 複合變數失控下的應變判斷", "D01: 口語表達"]}' },
-          { role: "user", content: "我曾主動發起一個鄰里清潔日活動，負責招募志願者並分配繁雜的清潔區域。看到鄰里環境變好，即便沒有任何物質報酬，我也覺得這種對社區的具體貢獻讓我非常有成就感。" },
-          { role: "assistant", content: '{"tags": ["A10: 多方可接受交集的判斷", "D11: 實體空間操作與設備使用"]}' },
-          { role: "user", content: "在上次駭客松比賽中，需要在極短時間內交付一個具備雲端同步功能的產品原型。" },
-          { role: "assistant", content: '{"tags": ["A02: 模糊情境下的問題核心辨識", "D09: 通用數位工具操作"]}' },
-          { role: "user", content: text }
-        ],
-        response_format: { type: "json_object" }
-      });
-
-      if (!aiResponse || !aiResponse.response) {
-        throw new Error("Cloudflare Workers AI 未回傳有效內容");
-      }
-
-      let content = aiResponse.response;
-      if (typeof content === "object") {
-        content = JSON.stringify(content);
-      }
-
-      const filteredContent = filterTagsJson(content);
-      return new Response(filteredContent, {
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${env.GROQ_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "qwen-2.5-32b",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: "我負責核心架構開發，在 48 小時內自學了全新的 Web 框架，並成功克服了多端同步的技術瓶頸，獲得導師高度肯定。" },
-          { role: "assistant", content: '{"tags": ["A06: 概念到執行方向的結構拆解", "D09: 通用數位工具操作"]}' },
-          { role: "user", content: "在醫院擔任志工時，面對焦慮的家屬，我能冷靜地安撫他們的情緒並提供協助。即便這個過程非常耗費心神，但看到家屬能稍微安心，我願意再次投入這樣高強度的心靈支持工作。" },
-          { role: "assistant", content: '{"tags": ["D01: 口語表達", "D02: 主動傾聽與語義提取"]}' },
-          { role: "user", content: "我曾獨立完成一個自動化報表系統，大幅減少了同仁手動輸入的時間。雖然主管當下沒有特別表揚，但我對自己能精簡流程並提升整體工作效率的成果感到非常滿意。" },
-          { role: "assistant", content: '{"tags": ["A08: 工作流程的診斷與改善判斷", "D09: 通用數位工具操作"]}' },
-          { role: "user", content: "在資源有限的情況下，我利用手邊現有的免代碼工具製作了一個自動化行銷漏斗。即使這不是我的本職工作，也沒有獎金，但看到實際轉換率因此提升，我覺得這種創造價值的過程非常迷人。" },
-          { role: "assistant", content: '{"tags": ["D09: 通用數位工具操作", "A13: 資源條件與投入時機的判斷"]}' },
-          { role: "user", content: "負責將公司超過十年、極其混亂的零散紙本檔案全部轉化為高效的數位檢索系統。" },
-          { role: "assistant", content: '{"tags": ["A08: 工作流程的診斷與改善判斷", "D08: 數據讀取與分析操作"]}' },
-          { role: "user", content: "我獨立規劃了資料庫架訊與分類邏輯，克服了原始資料格式不一的問題，建立了一套讓團隊成員能在三秒內精準檢索的系統。" },
-          { role: "assistant", content: '{"tags": ["A03: 大量資訊中的規律辨識", "D09: 通用數位工具操作"]}' },
-          { role: "user", content: "在一次大型戶外活動中，原定的場地突然因為天氣因素無法使用，我迅速聯繫了備案場地並在兩小時內指揮搬運隊完成所有物資轉移。雖然過程混亂，但我對自己能靈活調度資源感到滿意。" },
-          { role: "assistant", content: '{"tags": ["A11: 複合變數失控下的應變判斷", "A13: 資源條件與投入時機的判斷"]}' },
-          { role: "user", content: "曾擔任繁忙捷運站旁的連鎖餐廳店長，在尖峰時刻面對人手嚴重不足且客訴不斷的壓力測試。" },
-          { role: "assistant", content: '{"tags": ["A11: 複合變數失控下的應變判斷", "D01: 口語表達"]}' },
-          { role: "user", content: "我曾主動發起一個鄰里清潔日活動，負責招募志願者並分配繁雜的清潔區域。看到鄰里環境變好，即便沒有任何物質報酬，我也覺得這種對社區的具體貢獻讓我非常有成就感。" },
-          { role: "assistant", content: '{"tags": ["A10: 多方可接受交集的判斷", "D11: 實體空間操作與設備使用"]}' },
-          { role: "user", content: "在上次駭客松比賽中，需要在極短時間內交付一個具備雲端同步功能的產品原型。" },
-          { role: "assistant", content: '{"tags": ["A02: 模糊情境下的問題核心辨識", "D09: 通用數位工具操作"]}' },
-          { role: "user", content: text }
-        ],
-        response_format: { type: "json_object" }
-      }),
+    const aiResponse = await env.AI.run("@cf/qwen/qwen2.5-coder-32b-instruct", {
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: "我負責核心架構開發，在 48 小時內自學了全新的 Web 框架，並成功克服了多端同步的技術瓶頸，獲得導師高度肯定。" },
+        { role: "assistant", content: '{"tags": ["A06: 概念到執行方向的結構拆解", "D09: 通用數位工具操作"]}' },
+        { role: "user", content: "在醫院擔任志工時，面對焦慮的家屬，我能冷靜地安撫他們的情緒並提供協助。即便這個過程非常耗費心神，但看到家屬能稍微安心，我願意再次投入這樣高強度的心靈支持工作。" },
+        { role: "assistant", content: '{"tags": ["D01: 口語表達", "D02: 主動傾聽與語義提取"]}' },
+        { role: "user", content: "我曾獨立完成一個自動化報表系統，大幅減少了同仁手動輸入的時間。雖然主管當下沒有特別表揚，但我對自己能精簡流程並提升整體工作效率的成果感到非常滿意。" },
+        { role: "assistant", content: '{"tags": ["A08: 工作流程的診斷與改善判斷", "D09: 通用數位工具操作"]}' },
+        { role: "user", content: "在資源有限的情況下，我利用手邊現有的免代碼工具製作了一個自動化行銷漏斗。即使這不是我的本職工作，也沒有獎金，但看到實際轉換率因此提升，我覺得這種創造價值的過程非常迷人。" },
+        { role: "assistant", content: '{"tags": ["D09: 通用數位工具操作", "A13: 資源條件與投入時機的判斷"]}' },
+        { role: "user", content: "負責將公司超過十年、極其混亂的零散紙本檔案全部轉化為高效的數位檢索系統。" },
+        { role: "assistant", content: '{"tags": ["A08: 工作流程的診斷與改善判斷", "D08: 數據讀取與分析操作"]}' },
+        { role: "user", content: "我獨立規劃了資料庫架構與分類邏輯，克服了原始資料格式不一的問題，建立了一套讓團隊成員能在三秒內精準檢索的系統。" },
+        { role: "assistant", content: '{"tags": ["A03: 大量資訊中的規律辨識", "D09: 通用數位工具操作"]}' },
+        { role: "user", content: "在一次大型戶外活動中，原定的場地突然因為天氣因素無法使用，我迅速聯繫了備案場地並在兩小時內指揮搬運隊完成所有物資轉移。雖然過程混亂，但我對自己能靈活調度資源感到滿意。" },
+        { role: "assistant", content: '{"tags": ["A11: 複合變數失控下的應變判斷", "A13: 資源條件與投入時機的判斷"]}' },
+        { role: "user", content: "曾擔任繁忙捷運站旁的連鎖餐廳店長，在尖峰時刻面對人手嚴重不足且客訴不斷的壓力測試。" },
+        { role: "assistant", content: '{"tags": ["A11: 複合變數失控下的應變判斷", "D01: 口語表達"]}' },
+        { role: "user", content: "我曾主動發起一個鄰里清潔日活動，負責招募志願者並分配繁雜的清潔區域。看到鄰里環境變好，即便沒有任何物質報酬，我也覺得這種對社區的具體貢獻讓我非常有成就感。" },
+        { role: "assistant", content: '{"tags": ["A10: 多方可接受交集的判斷", "D11: 實體空間操作與設備使用"]}' },
+        { role: "user", content: "在上次駭客松比賽中，需要在極短時間內交付一個具備雲端同步功能的產品原型。" },
+        { role: "assistant", content: '{"tags": ["A02: 模糊情境下的問題核心辨識", "D09: 通用數位工具操作"]}' },
+        { role: "user", content: text }
+      ],
+      response_format: { type: "json_object" }
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      return new Response(JSON.stringify({ error: data.error?.message || "Groq API 呼叫失敗" }), {
-        status: response.status,
-        headers: { "Content-Type": "application/json" }
-      });
+    if (!aiResponse || !aiResponse.response) {
+      throw new Error("Cloudflare Workers AI 未回傳有效內容");
     }
 
-    const filteredContent = filterTagsJson(data.choices[0].message.content);
+    let content = aiResponse.response;
+    if (typeof content === "object") {
+      content = JSON.stringify(content);
+    }
+
+    const filteredContent = filterTagsJson(content);
     return new Response(filteredContent, {
       headers: { "Content-Type": "application/json" },
     });
